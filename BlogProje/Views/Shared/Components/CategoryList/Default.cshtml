@@ -1,0 +1,12 @@
+﻿@using Entities.DTOs
+@model List<CategoryWithBlogCountDto>
+
+<div class="list-group">
+    @foreach (var category in Model)
+    {
+        <a href="#" class="list-group-item list-group-item-action">
+            @category.CategoryName
+            <span class="badge bg-secondary float-end">@category.BlogCount</span>
+        </a>
+    }
+</div>
