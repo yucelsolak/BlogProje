@@ -11,6 +11,7 @@ namespace Entities.DTOs
     {
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
+        public string Slug { get; set; } = null!;
         public int BlogCount { get; set; }
     }
 }

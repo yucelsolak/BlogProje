@@ -34,7 +34,7 @@ namespace BlogProje
             services.AddControllersWithViews();
 
             // AutoMapper'ý ekliyoruz, MappingProfile burada olmalý
-            services.AddAutoMapper(typeof(MappingProfile).Assembly);
+            //services.AddAutoMapper(typeof(MappingProfile).Assembly);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -60,6 +60,11 @@ namespace BlogProje
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapControllerRoute(
+            name: "areas",
+            pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
             });
         }
     }

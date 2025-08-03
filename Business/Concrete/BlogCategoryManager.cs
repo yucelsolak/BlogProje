@@ -21,6 +21,11 @@ namespace Business.Concrete
            _blogCategoryDal = blogCategoryDal; 
         }
 
+        public BlogCategory GetBySlug(string slug)
+        {
+           return _blogCategoryDal.GetBySlug(slug);
+        }
+
         public List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount()
         {
             return _blogCategoryDal.GetCategoriesWithBlogCount();

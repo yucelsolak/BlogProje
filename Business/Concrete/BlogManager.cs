@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Business.Concrete
@@ -16,29 +17,21 @@ namespace Business.Concrete
     public class BlogManager : IBlogService
     {
         IBlogDal _blogDal;
-        IMapper _mapper;
 
 
-        public BlogManager(IBlogDal blogDal, IMapper mapper)
+        public BlogManager(IBlogDal blogDal)
         {
             _blogDal = blogDal;
-            _mapper = mapper;
-        }
-        public List<Blog> GetAllByCategory(int CategoryId)
-        {
-            return _blogDal.GetAll(p => p.CategoryId == CategoryId);
         }
 
-        public List<BlogListDto> GetBlogListDtos()
+        public List<BlogListDto> GetByCategory(int CategoryId)
         {
-            var blogs = _blogDal.GetAll().OrderByDescending(b=>b.BlogId).Take(10);
-            return _mapper.Map<List<BlogListDto>>(blogs);
-
+            return _blogDal.GetByCategory(CategoryId);
         }
 
-        public List<Blog> GetLastTenBlogs()
+         public List<BlogListDto> GetLastTenBlog()
         {
-            return _blogDal.GetAll().OrderByDescending(p=>p.BlogId).Take(10).ToList();
+            return _blogDal.GetLastTenBlog();
         }
 
         public void TAdd(Blog entity)
@@ -56,7 +49,7 @@ namespace Business.Concrete
            return _blogDal.Get(p => p.BlogId == id);
         }
 
-        public List<Blog> TGetList()
+        public List<Blog> GetAllBlog()
         {
             return _blogDal.GetAll();
         }
@@ -64,6 +57,36 @@ namespace Business.Concrete
         public void TUpdate(Blog entity)
         {
             _blogDal.Update(entity);
+        }
+
+        List<BlogListDto> IBlogService.GetAllBlog()
+        {
+           return _blogDal.GetAllBlog();
+        }
+
+        public List<Blog> TGetList()
+        {
+            return _blogDal.GetAll();
+        }
+
+        public Blog GetBlogDetail(string slug)
+        {
+            return _blogDal.GetBlogDetail(slug);
+        }
+
+        public void IncrementViewCount(int BlogId)
+        {
+            _blogDal.IncrementViewCount(BlogId);
+        }
+
+        public List<BlogListDto> GetMostRead()
+        {
+            return _blogDal.GetMostRead();
+        }
+
+        public List<BlogListDto> GetAdmin50Blog()
+        {
+            return _blogDal.GetAdmin50Blog();
         }
     }
 }

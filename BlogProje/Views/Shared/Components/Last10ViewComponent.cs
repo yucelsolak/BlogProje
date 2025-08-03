@@ -13,7 +13,7 @@ namespace BlogProje.Views.Shared.Components
         }
         public IViewComponentResult Invoke()
         {
-            var LastTen = _blogManager.GetBlogListDtos();
+            var LastTen = _blogManager.GetLastTenBlog();
             return View(LastTen);
         }
     }

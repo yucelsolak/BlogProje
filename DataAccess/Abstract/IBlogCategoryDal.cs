@@ -12,5 +12,6 @@ namespace DataAccess.Abstract
     public interface IBlogCategoryDal:IEntityRepository<BlogCategory>
     {
         List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount();
+        BlogCategory? GetBySlug(string slug);
     }
 }

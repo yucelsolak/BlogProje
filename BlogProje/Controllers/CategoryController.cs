@@ -1,21 +1,32 @@
-﻿using Business.Concrete;
+﻿using Business.Abstract;
+using Business.Concrete;
+using DataAccess.Abstract;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogProje.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly BlogCategoryManager _blogCategoryManager;
+        private readonly IBlogService _blogService;
+        private readonly IBlogCategoryService _categoryService;
 
-        public CategoryController(BlogCategoryManager blogCategoryManager)
+        public CategoryController(IBlogService blogService, IBlogCategoryService categoryService)
         {
-            _blogCategoryManager = blogCategoryManager;
+            _blogService = blogService;
+            _categoryService = categoryService;
         }
 
-        public IActionResult CategoryList()
+        [HttpGet("/Category/{slug}")]
+        public IActionResult Index(string slug)
         {
-            var categories = _blogCategoryManager.GetCategoriesWithBlogCount();
-            return View(categories);
+            // (Opsiyonel) Kategori var mı kontrolü
+            var category = _categoryService.GetBySlug(slug);
+            if (category is null || !category.Status) return NotFound();
+
+
+            var model = _blogService.GetByCategory(category.CategoryId); // List<BlogListDto>
+            ViewBag.CategoryName = category.CategoryName; // başlıkta kullanırsın
+            return View(model); // Views/Category/Index.cshtml
         }
     }
 }

@@ -10,11 +10,13 @@ namespace Entities.DTOs
 {
     public class BlogDetailDto:IDto
     {
-        [Key]
         public int BlogId { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Image { get; set; }
-        public string CategoryName { get; set; }
+        public string Title { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public string? Image { get; set; }              
+        public string CategoryName { get; set; } = null!;
+  
+
+        public DateTime AddedTime { get; set; }
     }
 }

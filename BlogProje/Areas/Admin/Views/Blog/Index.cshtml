@@ -1,0 +1,36 @@
+﻿@using Entities.DTOs
+@model List<BlogListDto>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
+}
+@section Category{}
+<h2>Blogs</h2>
+<hr />
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Blog Id</th>
+                <th>Blog Title</th>
+                <th>Category Name</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+@foreach (var blog in Model)
+{
+            <tr>
+                <td>@blog.BlogId</td>
+                <td>@blog.Title</td>
+                <td>@blog.CategoryName</td>
+                <td>
+                    <a href=""><i class="bi bi-archive-fill h4"></i></a>&nbsp;&nbsp;
+                    <a href=""><i class="bi bi-pencil-square h4"></i></a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+

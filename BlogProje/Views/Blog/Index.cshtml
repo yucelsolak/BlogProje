@@ -1,0 +1,17 @@
+﻿@using Entities.DTOs
+@model List<BlogListDto>
+
+@section Category {
+}
+<h2>Tüm Bloglar</h2>
+@foreach (var item in Model)
+{
+    <div class="card p-2 m-3 float-start" style="width: 450px;">
+        <img src="~/images/BlogImages/small/@item.Image" class="card-img-top" alt="...">
+        <div class="card-body">
+            <h5 class="card-title"><a href="/BlogDetail/@item.BlogSlug">@item.Title</a></h5>
+            <p class="card-text">@item.ShortDescription</p>
+            <small>@item.AddedTime.ToString("dd.MM.yyyy")</small>
+        </div>
+    </div>
+}

@@ -11,6 +11,7 @@ namespace Business.Abstract
     public interface IBlogCategoryService:IGenericService<BlogCategory>
     {
         List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount();
+        BlogCategory? GetBySlug(string slug);
 
     }
 }
