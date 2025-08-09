@@ -2,12 +2,13 @@
 using Core.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
-using Entities.DTOs;
+using Entities.DTOs.Blog;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,90 +26,98 @@ namespace DataAccess.Concrete.EntityFramework
             }
         }
 
-        public List<BlogListDto> GetLastTenBlog()
-        {
-            using (var context= new BlogContext())
-            {
-                var raw = context.Blogs
-           .AsNoTracking()
-           .OrderByDescending(b => b.BlogId)
-           .Select(b => new
-           {
-               b.BlogId,
-               b.Title,
-               b.Image,
-               b.AddedTime,
-               b.Description,
-               b.Slug
-           })
-           .Take(10)
-           .ToList(); // <-- DB çağrısı burada biter
 
-                // Kısaltmayı bellekte uygula (extension metodları burada devreye girer)
-                return raw.Select(b => new BlogListDto
-                {
-                    BlogId = b.BlogId,
-                    Title = b.Title,
-                    Image = b.Image,
-                    AddedTime = b.AddedTime,
-                    Slug=b.Slug,// DateTimeOffset
-                    ShortDescription = b.Description.ToShort(160) // veya .ToWordShort(40)
-                })
-                .ToList();
-            } 
-        }
 
         public List<BlogListDto> GetByCategory(int categoryId)
         {
             using var context = new BlogContext();
-            return context.Blogs
-                .AsNoTracking()
-                .Where(b => b.Status && b.CategoryId == categoryId)
-                .OrderByDescending(b => b.CategoryId)
-                .Select(b => new { b.BlogId, b.Title, b.Image, b.AddedTime, b.Description,b.Slug })
-                .ToList()
-                .Select(b => new BlogListDto
-                {
-                    BlogId = b.BlogId,
-                    Title = b.Title,
-                    Image = b.Image,
-                    AddedTime = b.AddedTime,
-                    BlogSlug=b.Slug,
-                    ShortDescription = b.Description.ToShort(200) // veya .ToWordShort(40)
-                })
-                .ToList();
+            var result = (from blog in context.Blogs
+                          join slug in context.Slugs
+                          on new { EntityId = blog.BlogId, EntityType = "Blog" }
+                          equals new { slug.EntityId, slug.EntityType }
+                          where blog.Status &&  blog.CategoryId == categoryId
+                           orderby blog.CategoryId descending
+                          select new
+                          {
+                              blog.BlogId,
+                              blog.Title,
+                              blog.Image,
+                              blog.AddedTime,
+                              blog.Status,
+                              blog.CategoryId,
+                              blog.ViewCount,
+                              CategoryName = blog.Category.CategoryName,
+                              Description = blog.Description,
+                              Slug = slug.SlugText
+                          })
+                        .AsNoTracking()
+                   .ToList();
+            return result.Select(b => new BlogListDto
+            {
+                BlogId = b.BlogId,
+                Title = b.Title,
+                Image = b.Image,
+                AddedTime = b.AddedTime,
+                ViewCount = b.ViewCount,
+                CategoryId = b.CategoryId,
+                CategoryName = b.CategoryName,
+                Status = b.Status,
+                Slug = b.Slug,
+                ShortDescription = b.Description.ToShort(200)
+            }).ToList();
         }
-
+        
         public List<BlogListDto> GetAllBlog()
         {
-            using var context = new BlogContext();
-            return context.Blogs
-                .AsNoTracking()
-                .Where(b => b.Status)
-                .OrderByDescending(b => b.BlogId)
-                .Select(b => new { b.BlogId, b.Title, b.Image, b.AddedTime, b.Description,b.Slug,b.ViewCount,b.Category.CategoryName })
-                .ToList()
-                .Select(b => new BlogListDto
-                {
-                    BlogId = b.BlogId,
-                    Title = b.Title,
-                    Image = b.Image,
-                    BlogSlug = b.Slug,
-                    AddedTime = b.AddedTime, 
-                    ViewCount=b.ViewCount,
-                    CategoryName=b.CategoryName,
-                    ShortDescription = b.Description.ToShort(200) // veya .ToWordShort(40)
-                })
-                .ToList();
-
+               using var context=new BlogContext();
+               var result=(from blog in  context.Blogs
+                           join slug in context.Slugs
+                           on new {EntityId=blog.BlogId,EntityType="Blog"}
+                           equals new {slug.EntityId,slug.EntityType}
+                           where blog.Status
+                           orderby blog.BlogId descending
+                           select new
+                           {
+                               blog.BlogId,
+                               blog.Title,
+                               blog.Image,
+                               blog.AddedTime,
+                               blog.Status,
+                               blog.CategoryId,
+                               blog.ViewCount,
+                               CategoryName=blog.Category.CategoryName,
+                               Description=blog.Description,
+                               Slug=slug.SlugText  
+                           })
+                           .AsNoTracking()
+                      .ToList();
+            return result.Select(b=> new BlogListDto {
+                BlogId = b.BlogId,
+                Title = b.Title,
+                Image = b.Image,
+                AddedTime = b.AddedTime,
+                ViewCount = b.ViewCount,
+                CategoryId = b.CategoryId,
+                CategoryName = b.CategoryName,
+                Status = b.Status,
+                Slug = b.Slug,
+                ShortDescription = b.Description.ToShort(200)
+            }).ToList();
         }
 
         public Blog GetBlogDetail(string slug)
         {
             using var context = new BlogContext();
-            return context.Blogs
+            var slugEntity = context.Slugs
         .AsNoTracking()
-        .FirstOrDefault(b => b.Slug == slug && b.Status);
+        .FirstOrDefault(s => s.SlugText == slug && s.EntityType == "Blog");
+
+            if (slugEntity == null)
+                return null;
+
+            return context.Blogs
+                .AsNoTracking()
+                .FirstOrDefault(b => b.BlogId == slugEntity.EntityId && b.Status);
         }
 
         public void IncrementViewCount(int BlogId)
@@ -121,48 +130,133 @@ namespace DataAccess.Concrete.EntityFramework
         public List<BlogListDto> GetMostRead()
         {
             using var context = new BlogContext();
-                return context.Blogs
-                .AsNoTracking()
-                .Where(b => b.Status)
-                .OrderByDescending(b => b.ViewCount)
-                .Select(b => new { b.BlogId, b.Title, b.Image, b.AddedTime, b.Description,b.Slug,b.ViewCount })
-                .Take(10)
-                .ToList()
-            .Select(b => new BlogListDto
-             {
-                 BlogId = b.BlogId,
-                 Title = b.Title,
-                 Image = b.Image,
-                 BlogSlug = b.Slug,
-                 AddedTime = b.AddedTime,
-                 ViewCount = b.ViewCount,
-                 ShortDescription = b.Description.ToShort(200) // veya .ToWordShort(40)
-             })
-                .ToList();
+            var result = (from blog in context.Blogs
+                          join slug in context.Slugs
+                          on new { EntityId = blog.BlogId, EntityType = "Blog" }
+                          equals new { slug.EntityId, slug.EntityType }
+                          where blog.Status
+                          orderby blog.ViewCount descending
+                          select new
+                          {
+                              blog.BlogId,
+                              blog.Title,
+                              blog.Image,
+                              blog.AddedTime,
+                              blog.Status,
+                              blog.ViewCount,
+                              blog.Category.CategoryName,
+                              blog.CategoryId,
+                              Description = blog.Description ?? "",
+                              Slug = slug.SlugText
+                          })
+                  .Take(50)
+                  .AsNoTracking()
+                  .ToList();
+
+            return result.Select(b => new BlogListDto
+            {
+                BlogId = b.BlogId,
+                Title = b.Title,
+                Image = b.Image,
+                AddedTime = b.AddedTime,
+                ViewCount = b.ViewCount,
+                CategoryName = b.CategoryName,
+                CategoryId = b.CategoryId,
+                Status = b.Status,
+                Slug = b.Slug,
+                ShortDescription = b.Description.ToShort(200)
+            }).ToList();
+        }
+
+
+
+        public List<BlogListDto> GetLastTenBlog()
+        {
+            using var context = new BlogContext();
+            var result = (from blog in context.Blogs
+                          join slug in context.Slugs
+                          on new { EntityId = blog.BlogId, EntityType = "Blog" }
+                          equals new { slug.EntityId, slug.EntityType }
+                          where blog.Status
+                          orderby blog.BlogId descending
+                          select new
+                          {
+                              blog.BlogId,
+                              blog.Title,
+                              blog.Image,
+                              blog.AddedTime,
+                              blog.Status,
+                              blog.ViewCount,
+                              blog.Category.CategoryName,
+                              blog.CategoryId,
+                              Description = blog.Description ?? "",
+                              Slug = slug.SlugText
+                          })
+                  .Take(10)
+                  .AsNoTracking()
+                  .ToList();
+
+            return result.Select(b => new BlogListDto
+            {
+                BlogId = b.BlogId,
+                Title = b.Title,
+                Image = b.Image,
+                AddedTime = b.AddedTime,
+                ViewCount = b.ViewCount,
+                CategoryName = b.CategoryName,
+                CategoryId = b.CategoryId,
+                Status = b.Status,
+                Slug = b.Slug,
+                ShortDescription = b.Description.ToShort(200)
+            }).ToList();
         }
 
         public List<BlogListDto> GetAdmin50Blog()
         {
-            using var context=new BlogContext();
-            return context.Blogs
-                .AsNoTracking()
-                .Where(b => b.Status)
-                .OrderByDescending (b => b.BlogId)
-                .Select(b=>new { b.BlogId, b.Title,b.Image, b.AddedTime,b.Status,b.Slug,b.ViewCount,b.Category.CategoryName,b.CategoryId })
-                .Take (50)
-                .ToList()
-                .Select(b=> new BlogListDto
-                {
-                    BlogId = b.BlogId,
-                    Title = b.Title,
-                    Image = b.Image,
-                    BlogSlug = b.Slug,
-                    AddedTime = b.AddedTime,
-                    ViewCount = b.ViewCount,
-                    CategoryName=b.CategoryName,
-                    CategoryId=b.CategoryId,
-                    Status=b.Status,
-                }).ToList();
+            using var context = new BlogContext();
+            var result = (from blog in context.Blogs
+                          join slug in context.Slugs
+                          on new { EntityId = blog.BlogId, EntityType = "Blog" }
+                          equals new { slug.EntityId, slug.EntityType }
+                          orderby blog.BlogId descending
+                          select new
+                          {
+                              blog.BlogId,
+                              blog.Title,
+                              blog.Image,
+                              blog.AddedTime,
+                              blog.Status,
+                              blog.ViewCount,
+                              blog.Category.CategoryName,
+                              blog.CategoryId,
+                              Description = blog.Description ?? "",
+                              Slug = slug.SlugText
+                          })
+                  .Take(50)
+                  .AsNoTracking()
+                  .ToList();
+
+            return result.Select(b => new BlogListDto
+            {
+                BlogId = b.BlogId,
+                Title = b.Title,
+                Image = b.Image,
+                AddedTime = b.AddedTime,
+                ViewCount = b.ViewCount,
+                CategoryName = b.CategoryName,
+                CategoryId = b.CategoryId,
+                Status = b.Status,
+                Slug = b.Slug,
+                ShortDescription = b.Description.ToShort(200)
+            }).ToList();
+        }
+
+        public List<Blog> GetAllWithCategory(Expression<Func<Blog, bool>> filter = null)
+        {
+            using var ctx = new BlogContext();
+            IQueryable<Blog> q = ctx.Blogs.Include(b => b.Category);
+            if (filter != null) q = q.Where(filter);
+            return q.OrderByDescending(b => b.BlogId).ToList();
         }
     }
 }

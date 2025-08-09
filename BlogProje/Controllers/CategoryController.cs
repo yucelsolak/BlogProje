@@ -21,8 +21,6 @@ namespace BlogProje.Controllers
         {
             // (Opsiyonel) Kategori var mı kontrolü
             var category = _categoryService.GetBySlug(slug);
-            if (category is null || !category.Status) return NotFound();
-
 
             var model = _blogService.GetByCategory(category.CategoryId); // List<BlogListDto>
             ViewBag.CategoryName = category.CategoryName; // başlıkta kullanırsın

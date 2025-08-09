@@ -14,8 +14,6 @@ namespace Entities.Concrete
         public int CategoryId { get; set; }
         [Required, MaxLength(100)]
         public string CategoryName { get; set; } = null!;
-        [Required, MaxLength(150)]
-        public string Slug { get; set; } = null!;
         public bool Status { get; set; } = true; 
         public ICollection<Blog> Blogs { get; set; } = new List<Blog>();
     }

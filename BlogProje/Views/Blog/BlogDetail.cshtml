@@ -12,7 +12,7 @@
     <h2>@Model.Title</h2>
     <img src="~/images/BlogImages/big/@Model.Image" class="card-img-top" alt="...">
     <div class="card-body">
-        <p class="card-text">@Model.Description</p>
+        <p class="card-text">@Html.Raw(@Model.Description)</p>
         <small>@Model.AddedTime.ToString("dd.MM.yyyy")</small>
     </div>
 </div>

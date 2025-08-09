@@ -1,13 +1,7 @@
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
+﻿using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BlogProje
 {
@@ -20,11 +14,17 @@ namespace BlogProje
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory()) // Burada Autofac etkinle�tiriliyor
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();      // tüm varsayılanları sök
+                    logging.AddConsole();          // sadece Console
+                    logging.AddDebug();            // (isteğe bağlı) Debug
+                    // kesinlikle AddEventLog yok
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-
     }
 }

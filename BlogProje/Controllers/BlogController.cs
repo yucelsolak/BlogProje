@@ -1,6 +1,7 @@
 ﻿using Business.Abstract;
 using Entities.Concrete;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace BlogProje.Controllers
 {
@@ -8,10 +9,12 @@ namespace BlogProje.Controllers
     {
         IBlogService _blogManager;
         IBlogCategoryService _blogCategoryService;
-        public BlogController(IBlogService blogservice, IBlogCategoryService blogCategoryService)
+        ISlugService _slugService;
+        public BlogController(IBlogService blogservice, IBlogCategoryService blogCategoryService, ISlugService slugService)
         {
             _blogManager = blogservice;
             _blogCategoryService = blogCategoryService;
+            _slugService = slugService;
         }
         public IActionResult Index()
         {
@@ -20,7 +23,7 @@ namespace BlogProje.Controllers
             return View(blog);
         }
         [HttpGet("/BlogDetail/{Slug}")]
-        public IActionResult BlogDetail(string Slug)
+        public async Task<IActionResult> BlogDetail(string Slug)
         {
             var blog = _blogManager.GetBlogDetail(Slug);
 
@@ -28,7 +31,7 @@ namespace BlogProje.Controllers
 
             var category=_blogCategoryService.TGetByID(blog.CategoryId);
             ViewBag.CategoryName = category.CategoryName;
-            ViewBag.CategorySlug = category.Slug;
+            ViewBag.CategorySlug =await _slugService.GetSlugAsync("Category", blog.CategoryId);
             return View(blog);
         }
         public IActionResult CokOkunanlar()

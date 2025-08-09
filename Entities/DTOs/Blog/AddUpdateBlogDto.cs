@@ -1,4 +1,6 @@
 ﻿using Core.Entities;
+using Entities.Concrete;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -7,24 +9,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities.Concrete
+namespace Entities.DTOs.Blog
 {
-    public class Blog:IEntity
+    public class AddUpdateBlogDto:IDto
     {
-        [Key]
         public int BlogId { get; set; }
-        [ForeignKey(nameof(Category))]
         public int CategoryId { get; set; }
-        [Required, MaxLength(300)]
         public string Title { get; set; }
-        [Column(TypeName = "nvarchar(max)")]
         public string Description { get; set; }
         public string Image { get; set; }
-        public bool Status { get; set; } = true;
-        public int ViewCount { get; set; } = 0;
-        public DateTimeOffset AddedTime { get; set; } = DateTimeOffset.UtcNow;
+        public bool Status { get; set; } 
+        public int ViewCount { get; set; } 
+        public DateTimeOffset AddedTime { get; set; } 
 
-        public virtual BlogCategory Category { get; set; } = null!;
-
+        public string Slug { get; set; }
+        public IFormFile BlogImage { get; set; }
     }
 }

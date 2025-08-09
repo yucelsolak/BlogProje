@@ -1,5 +1,5 @@
 ﻿using Entities.Concrete;
-using Entities.DTOs;
+using Entities.DTOs.Category;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +12,9 @@ namespace Business.Abstract
     {
         List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount();
         BlogCategory? GetBySlug(string slug);
+        void AddCategory(AddCategoryDto dto);
+        void CategoryWithSlugUpdate(BlogCategory entity, string slugText);
 
+        public bool CanDeleteCategory(int categoryId);
     }
 }

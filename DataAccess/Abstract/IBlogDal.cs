@@ -1,9 +1,10 @@
 ﻿using Core.DataAccess;
 using Entities.Concrete;
-using Entities.DTOs;
+using Entities.DTOs.Blog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,5 +20,6 @@ namespace DataAccess.Abstract
         List<BlogListDto> GetMostRead();
         Blog GetBlogDetail(string Slug);
         void IncrementViewCount(int BlogId);
+        List<Blog> GetAllWithCategory(Expression<Func<Blog, bool>> filter = null);
     }
 }

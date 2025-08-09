@@ -1,11 +1,26 @@
 ﻿@using Entities.DTOs
+@using Entities.DTOs.Category
 @model List<CategoryWithBlogCountDto>
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
 }
-@section Category{}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@section Category{}
+<div><a class="btn btn-primary" href="/Admin/Category/AddCategory">Add Category</a></div>
+<hr />
     <table class="table table-hover table-striped" style="width:500px">
         <thead>
             <tr>
@@ -21,8 +36,14 @@
                 <td>@category.CategoryId</td>
                 <td>@category.CategoryName</td>
                 <td>
-                    <a href=""><i class="bi bi-archive-fill h4"></i></a>&nbsp;&nbsp;
-                    <a href=""><i class="bi bi-pencil-square h4"></i></a>
+                    <form action="/Admin/Category/Delete/@category.CategoryId" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link p-0 m-0" style="color: inherit;"
+                                onclick="return confirm('Bu Kategory silinsin mi?');">
+                            <i class="bi bi-archive-fill h4"></i>
+                        </button>
+                    </form>&nbsp;&nbsp;
+                    <a href="/Admin/Category/Edit/@category.CategoryId"><i class="bi bi-pencil-square h4"></i></a>
                 </td>
             </tr>
         }

@@ -1,6 +1,8 @@
 using Autofac;
+using BlogProje.Infrastructure;
 using Business.DependencyResolvers.Autofac;
 using Business.Mapping;
+using Core.Infrastructure.Abstract;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,7 +34,9 @@ namespace BlogProje
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-
+            services.AddSingleton<Core.Infrastructure.Abstract.IImageStorage,
+                                  BlogProje.Infrastructure.LocalImageStorage>();
+            services.AddSingleton<IImageStorage, LocalImageStorage>();
             // AutoMapper'ý ekliyoruz, MappingProfile burada olmalý
             //services.AddAutoMapper(typeof(MappingProfile).Assembly);
         }
@@ -58,12 +62,14 @@ namespace BlogProje
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+           name: "areas",
+           pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-                endpoints.MapControllerRoute(
-            name: "areas",
-            pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+               
 
             });
         }

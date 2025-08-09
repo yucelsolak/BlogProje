@@ -6,14 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities.DTOs
+namespace Entities.DTOs.Blog
 {
     public class BlogDetailDto:IDto
     {
         public int BlogId { get; set; }
         public string Title { get; set; } = null!;
         public string Description { get; set; } = null!;
-        public string? Image { get; set; }              
+        public string Image { get; set; }              
         public string CategoryName { get; set; } = null!;
   
 
