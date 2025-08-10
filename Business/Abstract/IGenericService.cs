@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Utilities.Results;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Business.Abstract
     public interface IGenericService<T>
     {
         void TAdd(T entity);
-        void TDelete(T entity);
+        IResult TDelete(T entity);
         void TUpdate(T entity);
         List<T> TGetList();
         T TGetByID(int id);

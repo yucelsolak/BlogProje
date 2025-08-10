@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Microsoft.EntityFrameworkCore;
@@ -59,7 +60,7 @@ namespace Business.Concrete
             _slugDal.Add(entity);
         }
 
-        public void TDelete(Slug entity)
+        public IResult TDelete(Slug entity)
         {
             throw new NotImplementedException();
         }

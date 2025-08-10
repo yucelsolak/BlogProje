@@ -1,5 +1,6 @@
 ﻿using Business.Abstract;
 using Core.Extensions;
+using Core.Utilities.Results;
 using Entities.Concrete;
 using Entities.DTOs.Blog;
 using Entities.DTOs.Category;
@@ -33,18 +34,14 @@ namespace BlogProje.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult Delete(int id)
         {   var category = _blogCategoryService.TGetByID(id);
+            
 
-            try
-            {
-                // Silme işlemini manager üzerinden çağırıyoruz
-                _blogCategoryService.TDelete(category);
-                TempData["SuccessMessage"] = "Kategori başarıyla silindi.";
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Manager'dan dönen hatayı burada yakalıyoruz
-                TempData["ErrorMessage"] = ex.Message;
-            }
+            var result = _blogCategoryService.TDelete(category);
+
+            if (!result.Success)
+                TempData["Error"] = result.Message;
+            else
+                TempData["SuccessCategory"] = result.Message;
 
             return RedirectToAction("Index", "Category", new { area = "Admin" });
 
@@ -54,14 +51,24 @@ namespace BlogProje.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult AddCategory()
         {
-            return View();
+            return View("AddCategory", new UpdateCategoryDto());
         }
 
         [HttpPost]
         [Area("Admin")]
-        public IActionResult AddCategory(AddCategoryDto model)
+        public IActionResult AddCategory(UpdateCategoryDto model)
         {
-            _blogCategoryService.AddCategory(model);
+            var addDto = new AddCategoryDto { CategoryName = model.CategoryName };
+
+            var result = _blogCategoryService.AddCategory(addDto);
+            
+            if (!result.Success)
+            {
+                ModelState.AddModelError("CategoryName", result.Message);
+                return View("AddCategory", model);// formu aynı hatayla geri göster
+            }
+
+            TempData["Success"] = result.Message;
             return RedirectToAction("Index", "Category", new { area = "Admin" });
         }
 

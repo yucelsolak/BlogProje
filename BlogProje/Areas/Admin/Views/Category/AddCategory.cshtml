@@ -18,6 +18,8 @@
             <div class="form-group">
                 @Html.LabelFor(x => x.CategoryName)
                 @Html.TextBoxFor(x => x.CategoryName, new { @class = "form-control" })
+
+                    @Html.ValidationMessageFor(m => m.CategoryName, null, new { @class = "invalid-feedback d-block" })
             </div>
 
             <div class="form-group form-check">

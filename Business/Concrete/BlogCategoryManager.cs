@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Business.Constants;
 using Core.Entities;
 using Core.Extensions;
+using Core.Utilities.Results;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
@@ -30,8 +32,15 @@ namespace Business.Concrete
             _blogDal = blogDal;
         }
 
-        public void AddCategory(AddCategoryDto dto)
+        public IResult AddCategory(AddCategoryDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto?.CategoryName))
+                return new ErrorResult(Messages.CategoryNotAllowEmpty);
+
+            var existingCategory = _blogCategoryDal.Get(c => c.CategoryName.ToLower() == dto.CategoryName.ToLower());
+            if (existingCategory != null)
+                return new ErrorResult(Messages.CategorySameName);
+
             var entity = _mapper.Map<BlogCategory>(dto);
             _blogCategoryDal.Add(entity); 
 
@@ -44,14 +53,15 @@ namespace Business.Concrete
                 EntityId = entity.CategoryId 
             };
 
-            _slugDal.Add(slug); 
+            _slugDal.Add(slug);
+            return new SuccessResult(Messages.CategoryAdded);
         }
 
-        public bool CanDeleteCategory(int categoryId)
-        {
-            var blogs = _blogDal.GetByCategory(categoryId);
-            return blogs == null || !blogs.Any(); // Eğer bağlı blog yoksa true döner, yoksa false
-        }
+        //public bool CanDeleteCategory(int categoryId)
+        //{
+        //    var blogs = _blogDal.GetByCategory(categoryId);
+        //    return blogs == null || !blogs.Any(); // Eğer bağlı blog yoksa true döner, yoksa false
+        //}
 
         public void CategoryWithSlugUpdate(BlogCategory entity, string slugText)
         {
@@ -81,16 +91,16 @@ namespace Business.Concrete
             _blogCategoryDal.Add(entity);
         }
 
-        public void TDelete(BlogCategory entity)
+        public IResult TDelete(BlogCategory entity)
         {
-            if (!CanDeleteCategory(entity.CategoryId))
-            {
-                throw new InvalidOperationException("Bu kategoride bloglar mevcut. Bu nedenle silinemez.");
-            }
+            var hasBlogs = _blogDal.GetByCategory(entity.CategoryId)?.Any() == true;
+            if (hasBlogs)
+                return new ErrorResult(Messages.CategoryHasBlogs);
 
-            _slugService.DeleteByEntity("Category", entity.CategoryId);
             _blogCategoryDal.Delete(entity);
-            
+            _slugService.DeleteByEntity("Category", entity.CategoryId);
+            return new SuccessResult(Messages.CategoryDeleted);
+  
         }
 
         public BlogCategory TGetByID(int id)

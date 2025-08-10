@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Business.Constants;
 using Core.Entities;
 using Core.Extensions;
 using Core.Infrastructure.Abstract;
+using Core.Utilities.Results;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
@@ -55,7 +57,7 @@ namespace Business.Concrete
             _blogDal.Add(entity);
         }
 
-        public void TDelete(Blog entity)
+        public IResult TDelete(Blog entity)
         {
             var fileName = entity.Image; // dosya adını sakla
             _slugService.DeleteByEntity("Blog", entity.BlogId);
@@ -63,6 +65,7 @@ namespace Business.Concrete
 
             if (!string.IsNullOrWhiteSpace(fileName))
                 _imageStorage.DeleteBlogImages(fileName);
+            return new SuccessResult(Messages.BlogDeleted);
         }
 
         public Blog TGetByID(int id)

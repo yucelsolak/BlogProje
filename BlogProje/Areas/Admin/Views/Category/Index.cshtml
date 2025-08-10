@@ -5,17 +5,19 @@
     ViewData["Title"] = "Index";
     Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
 }
-@if (TempData["ErrorMessage"] != null)
+@if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger">
-        @TempData["ErrorMessage"]
-    </div>
+    <div id="ErrorBlog" class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["SuccessCategory"] != null)
+{
+    <div id="SuccessBlog" class="alert alert-success">@TempData["SuccessCategory"]</div>
 }
 
-@if (TempData["SuccessMessage"] != null)
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-success">
-        @TempData["SuccessMessage"]
+    <div id="successAlert" class="alert alert-success fade show" role="alert">
+        @TempData["Success"]
     </div>
 }
 @section Category{}
@@ -51,4 +53,16 @@
     </table>
 
 
-
+@section Scripts {
+    <script>
+        // Sayfadaki tüm alert div'lerini seç
+        document.querySelectorAll('.alert').forEach(function (alert) {
+            setTimeout(function () {
+                alert.classList.remove('show'); // fade-out başlat
+                setTimeout(function () {
+                    alert.remove(); // fade-out bitince tamamen kaldır
+                }, 500);
+            }, 3000); // 3 saniye sonra başlat
+        });
+    </script>
+}
