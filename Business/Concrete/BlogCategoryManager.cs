@@ -42,38 +42,35 @@ namespace Business.Concrete
                 return new ErrorResult(Messages.CategorySameName);
 
             var entity = _mapper.Map<BlogCategory>(dto);
-            _blogCategoryDal.Add(entity); 
+            _blogCategoryDal.Add(entity);
 
-            var slugText = dto.CategoryName.ToSlug();
-
-            var slug = new Slug
-            {
-                SlugText = slugText,
-                EntityType = "Category",
-                EntityId = entity.CategoryId 
-            };
-
-            _slugDal.Add(slug);
+            _slugService.AddSlug(dto.CategoryName, "Category", entity.CategoryId);
             return new SuccessResult(Messages.CategoryAdded);
         }
 
-        //public bool CanDeleteCategory(int categoryId)
-        //{
-        //    var blogs = _blogDal.GetByCategory(categoryId);
-        //    return blogs == null || !blogs.Any(); // Eğer bağlı blog yoksa true döner, yoksa false
-        //}
-
-        public void CategoryWithSlugUpdate(BlogCategory entity, string slugText)
+        public IResult CategoryWithSlugUpdate(BlogCategory entity, string slugText)
         {
-            
+            if (string.IsNullOrWhiteSpace(entity?.CategoryName))
+                return new ErrorResult(Messages.CategoryNotAllowEmpty);
+
+            var normalizedName = entity.CategoryName.Trim();
+
+            var exists = _blogCategoryDal
+        .GetAll(c => c.CategoryId != entity.CategoryId &&
+                      c.CategoryName.ToLower() == normalizedName.ToLower())
+        .Any(); // <- Burada Any, List/Enumerable üstünde
+
+            if (exists)
+                return new ErrorResult(Messages.CategorySameName);
+
             _blogCategoryDal.Update(entity);
 
             var slug = _slugService.GetByEntity("Category", entity.CategoryId);
             if (slug != null)
             {
-                slug.SlugText = slugText.ToSlug();
-                _slugDal.Update(slug);
+                _slugService.UpdateSlug(slug.SlugId, entity.CategoryName);
             }
+            return new SuccessResult(Messages.CategoryUpdated);
         }
 
         public BlogCategory GetBySlug(string slug)

@@ -12,7 +12,7 @@ namespace Entities.Concrete
     {
         [Key]
         public int CategoryId { get; set; }
-        [Required, MaxLength(100)]
+        [ MaxLength(100)]
         public string CategoryName { get; set; } = null!;
         public bool Status { get; set; } = true; 
         public ICollection<Blog> Blogs { get; set; } = new List<Blog>();

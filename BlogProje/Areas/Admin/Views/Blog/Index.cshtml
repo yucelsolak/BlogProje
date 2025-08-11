@@ -5,6 +5,18 @@
 }
 @section Category {
 }
+@if (TempData["BlogAdded"] != null)
+{
+    <div id="BlogAdded" class="alert alert-success">@TempData["BlogAdded"]</div>
+}
+@if (TempData["BlogUpdated"] != null)
+{
+    <div id="BlogUpdated" class="alert alert-success">@TempData["BlogUpdated"]</div>
+}
+@if (TempData["BlogDeleted"] != null)
+{
+    <div id="BlogUpdated" class="alert alert-success">@TempData["BlogDeleted"]</div>
+}
 <div><a class="btn btn-primary" href="/Admin/Blog/AddBlog">Add Blog</a></div>
 <br />
 
@@ -30,5 +42,15 @@
                 });
         });
     });
+
+    // Sayfadaki tüm alert div'lerini seç
+        document.querySelectorAll('.alert').forEach(function (alert) {
+            setTimeout(function () {
+                alert.classList.remove('show'); // fade-out başlat
+                setTimeout(function () {
+                    alert.remove(); // fade-out bitince tamamen kaldır
+                }, 500);
+            }, 3000); // 3 saniye sonra başlat
+        });
 
 </script>

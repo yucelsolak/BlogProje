@@ -9,7 +9,6 @@ namespace Entities.DTOs.Category
 {
     public class AddCategoryDto
     {
-        [Required]
         public string CategoryName { get; set; } = null!;
         public bool Status { get; set; } = true;
         public string Slug { get; set; }

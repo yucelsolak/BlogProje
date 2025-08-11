@@ -90,6 +90,7 @@ namespace BlogProje.Areas.Admin.Controllers
                 // Slug alanı yoksa zaten gerek yok
             };
 
+            
             ViewBag.ActionName = "Edit"; // View'da BeginForm bunu kullanıyor
             return View("AddCategory", dto); // Aynı View dosyasını kullanıyorsun
         }
@@ -111,7 +112,14 @@ namespace BlogProje.Areas.Admin.Controllers
                 Status = dto.Status
             };
 
-            _blogCategoryService.CategoryWithSlugUpdate(entity, dto.CategoryName); // Slug içeride otomatik üretiliyor
+            var result=_blogCategoryService.CategoryWithSlugUpdate(entity, dto.CategoryName); // Slug içeride otomatik üretiliyor
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError("CategoryName", result.Message);
+                return View("AddCategory", dto);// formu aynı hatayla geri göster
+            }
+            TempData["CategoryUpdated"] = result.Message;
 
             return RedirectToAction("Index", "Category", new { area = "Admin" });
         }

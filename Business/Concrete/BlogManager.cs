@@ -33,13 +33,13 @@ namespace Business.Concrete
         ISlugDal _slugDal;
         ISlugService _slugService;
         IImageStorage _imageStorage;
-        public BlogManager(IBlogDal blogDal, IMapper mapper, ISlugDal slugDal, ISlugService slugService,IImageStorage imageStorage)
+        public BlogManager(IBlogDal blogDal, IMapper mapper, ISlugDal slugDal, ISlugService slugService, IImageStorage imageStorage)
         {
             _blogDal = blogDal;
             _mapper = mapper;
             _slugDal = slugDal;
             _slugService = slugService;
-            _imageStorage=imageStorage;
+            _imageStorage = imageStorage;
         }
 
         public List<BlogListDto> GetByCategory(int CategoryId)
@@ -47,7 +47,7 @@ namespace Business.Concrete
             return _blogDal.GetByCategory(CategoryId);
         }
 
-         public List<BlogListDto> GetLastTenBlog()
+        public List<BlogListDto> GetLastTenBlog()
         {
             return _blogDal.GetLastTenBlog();
         }
@@ -70,7 +70,7 @@ namespace Business.Concrete
 
         public Blog TGetByID(int id)
         {
-           return _blogDal.Get(p => p.BlogId == id);
+            return _blogDal.Get(p => p.BlogId == id);
         }
 
         public List<Blog> GetAllBlog()
@@ -85,7 +85,7 @@ namespace Business.Concrete
 
         List<BlogListDto> IBlogService.GetAllBlog()
         {
-           return _blogDal.GetAllBlog();
+            return _blogDal.GetAllBlog();
         }
 
         public List<Blog> TGetList()
@@ -110,24 +110,21 @@ namespace Business.Concrete
 
 
 
-        public void AddBlog(AddUpdateBlogDto dto)
-        {
-            Console.WriteLine("DTO Tipi: " + dto.GetType().FullName);
+        public IResult AddBlog(AddUpdateBlogDto dto)
+        { 
+            if (string.IsNullOrWhiteSpace(dto?.Title))
+                return new ErrorResult(Messages.BlogNotAllowEmpty); 
+                
+            if(dto.CategoryId==0)
+                return new ErrorResult(Messages.BlogCategoryNotAllowEmpty);
+
             var entity=_mapper.Map<Blog>(dto);
             var image = entity.Title.ToSlug()+".jpg";
             entity.AddedTime = DateTime.UtcNow;
             entity.Image = image;
             _blogDal.Add(entity);
-
-            var slugText=entity.Title.ToSlug();
-
-            var slug = new Slug
-            {
-                SlugText = slugText,
-                EntityId = entity.BlogId,
-                EntityType = "Blog"
-            };
-            _slugDal.Add(slug);
+            _slugService.AddSlug(dto.Title, "Blog", entity.BlogId);
+            return new SuccessResult(Messages.BlogAdded);
         }
 
         public async Task<string> SaveBlogImage(IFormFile blogImage, string title)
@@ -192,7 +189,7 @@ namespace Business.Concrete
             }
         }
 
-        public async Task BlogWithSlugUpdate(Blog entity, string slugText, IFormFile newImage)
+        public async Task<IResult> BlogWithSlugUpdate(Blog entity, string slugText, IFormFile newImage)
         {
             var blog = _blogDal.Get(p => p.BlogId == entity.BlogId);
           
@@ -200,8 +197,7 @@ namespace Business.Concrete
             var slug = _slugService.GetByEntity("Blog", entity.BlogId);
             if (slug != null)
             {
-                slug.SlugText = slugText.ToSlug();
-                _slugDal.Update(slug);
+                _slugService.UpdateSlug(slug.SlugId, entity.Title);
             }
             // Resim güncelleme işlemi
             if ( newImage != null && newImage.Length > 0)
@@ -216,7 +212,7 @@ namespace Business.Concrete
                 entity.Image = blog.Image;
                 _blogDal.Update(entity);
             }
-            
+            return new SuccessResult(Messages.BlogUpdated);
 
         }
 
@@ -245,6 +241,21 @@ namespace Business.Concrete
                 CategoryName = b?.Category?.CategoryName ?? "",
                 Status = b?.Status ?? false
             }).ToList();
+        }
+
+        public IValidationResult ValidateForAdd(AddUpdateBlogDto dto)
+        {
+            var res = new ValidationResult();
+
+            if (string.IsNullOrWhiteSpace(dto?.Title))
+                res.AddError(nameof(dto.Title), Messages.BlogNotAllowEmpty);
+
+            if (string.IsNullOrWhiteSpace(dto?.Description))
+                res.AddError(nameof(dto.Description), Messages.BlogDescNotAllowEmpty);
+
+            if (dto.CategoryId == 0)
+                res.AddError(nameof(dto.CategoryId), Messages.BlogCategoryNotAllowEmpty);
+            return res;
         }
     }
 }

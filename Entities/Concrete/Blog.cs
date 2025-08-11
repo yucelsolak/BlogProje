@@ -15,7 +15,6 @@ namespace Entities.Concrete
         public int BlogId { get; set; }
         [ForeignKey(nameof(Category))]
         public int CategoryId { get; set; }
-        [Required, MaxLength(300)]
         public string Title { get; set; }
         [Column(TypeName = "nvarchar(max)")]
         public string Description { get; set; }

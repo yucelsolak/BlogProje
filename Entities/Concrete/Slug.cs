@@ -11,7 +11,7 @@ namespace Entities.Concrete
     public class Slug:IEntity
     {
         [Key]
-        public int SludId { get; set; }
+        public int SlugId { get; set; }
         public string SlugText { get; set; } // örn: urunadi, urunadi-1
         public string EntityType { get; set; } // örn: Product, Blog, News
         public int EntityId { get; set; }

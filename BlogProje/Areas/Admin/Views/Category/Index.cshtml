@@ -9,6 +9,10 @@
 {
     <div id="ErrorBlog" class="alert alert-danger">@TempData["Error"]</div>
 }
+@if (TempData["CategoryUpdated"] != null)
+{
+    <div id="CategoryUpdated" class="alert alert-success">@TempData["CategoryUpdated"]</div>
+}
 @if (TempData["SuccessCategory"] != null)
 {
     <div id="SuccessBlog" class="alert alert-success">@TempData["SuccessCategory"]</div>

@@ -14,8 +14,7 @@ namespace Business.Abstract
         List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount();
         BlogCategory? GetBySlug(string slug);
         IResult AddCategory(AddCategoryDto dto);
-        void CategoryWithSlugUpdate(BlogCategory entity, string slugText);
+        IResult CategoryWithSlugUpdate(BlogCategory entity, string slugText);
 
-        //bool CanDeleteCategory(int categoryId);
     }
 }

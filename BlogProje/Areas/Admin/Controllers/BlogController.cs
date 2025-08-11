@@ -1,12 +1,17 @@
 ﻿using Business.Abstract;
+using Business.Constants;
 using Core.Extensions;
+using Core.Utilities.Results;
 using Entities.Concrete;
 using Entities.DTOs.Blog;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.VisualStudio.Web.CodeGeneration.Contracts.Messaging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -48,7 +53,8 @@ namespace BlogProje.Areas.Admin.Controllers
             var blog=_blogManager.TGetByID(id);
             if (blog == null) return NotFound();
 
-            _blogManager.TDelete(blog);
+           var result= _blogManager.TDelete(blog);
+            TempData["BlogDeleted"] = result.Message;
             return RedirectToAction("Index", "Blog", new { area = "Admin" });
         }
 
@@ -57,8 +63,7 @@ namespace BlogProje.Areas.Admin.Controllers
         [Area("Admin")]
         public ActionResult AddBlog()
         {
-            var categories = _blogCategoryManager.TGetList();
-            ViewBag.Categories = new SelectList(categories, "CategoryId", "CategoryName");
+            ViewBag.Categories = BuildCategoryList();
 
             var model = new AddUpdateBlogDto
             {
@@ -77,10 +82,22 @@ namespace BlogProje.Areas.Admin.Controllers
                 model.Image = fileName;
             }
 
-            var categories = _blogCategoryManager.TGetList();
-            ViewBag.Categories = new SelectList(categories, "CategoryId", "CategoryName");
-            _blogManager.AddBlog(model);
-            return RedirectToAction("Index", "Blog", new { area = "Admin" });
+            var vres = _blogManager.ValidateForAdd(model);
+            if (!vres.Success)
+            {
+                foreach (var e in vres.Errors)
+                    ModelState.AddModelError(e.Field, e.Message);
+
+                ViewBag.Categories = BuildCategoryList(); // "0 - Kategori Seçin" dahil
+                return View("AddBlog", model);
+            }
+            else
+            {
+                var result =_blogManager.AddBlog(model);
+                TempData["BlogAdded"] = result.Message;
+                return RedirectToAction("Index", "Blog", new { area = "Admin" });
+            }
+                
 
         }
         [HttpGet]
@@ -98,8 +115,7 @@ namespace BlogProje.Areas.Admin.Controllers
                 Status= blog.Status,
                 CategoryId= blog.CategoryId
             };
-            var categories = _blogCategoryManager.TGetList();
-            ViewBag.Categories = new SelectList(categories, "CategoryId", "CategoryName");
+            ViewBag.Categories = BuildCategoryList();
 
             ViewBag.ActionName = "Edit"; // View'da BeginForm bunu kullanıyor
             return View("AddBlog", dto); // Aynı View dosyasını kullanıyorsun
@@ -114,18 +130,42 @@ namespace BlogProje.Areas.Admin.Controllers
                 return View("AddBlog", dto); 
             }
 
-            var entity = new Blog
+            var vres = _blogManager.ValidateForAdd(dto);
+            if (!vres.Success)
             {
-                BlogId = dto.BlogId,
-                Title = dto.Title,
-                Image = dto.Image,
-                Description = dto.Description,
-                Status = dto.Status,
-                CategoryId = dto.CategoryId
-            };
+                foreach (var e in vres.Errors)
+                    ModelState.AddModelError(e.Field, e.Message);
 
-           await _blogManager.BlogWithSlugUpdate(entity, dto.Title,dto.BlogImage );
-            return RedirectToAction("Index", "Blog", new { area = "Admin" });
+                ViewBag.Categories = BuildCategoryList(); // "0 - Kategori Seçin" dahil
+                return View("AddBlog", dto);
+            }
+            else
+            { 
+                var entity = new Blog
+                {
+                    BlogId = dto.BlogId,
+                    Title = dto.Title,
+                    Image = dto.Image,
+                    Description = dto.Description,
+                    Status = dto.Status,
+                    CategoryId = dto.CategoryId
+                };
+                var result = await _blogManager.BlogWithSlugUpdate(entity, dto.Title, dto.BlogImage);
+                TempData["BlogUpdated"] = result.Message;
+                return RedirectToAction("Index", "Blog", new { area = "Admin" });
+            }
+        }
+        private IEnumerable<SelectListItem> BuildCategoryList()
+        {
+            var categories = _blogCategoryManager.TGetList();
+            var list = categories.Select(c => new SelectListItem
+            {
+                Value = c.CategoryId.ToString(),
+                Text = c.CategoryName
+            }).ToList();
+
+            list.Insert(0, new SelectListItem { Value = "0", Text = "Kategori Seçin" });
+            return list;
         }
     }
 }

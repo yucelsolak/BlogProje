@@ -23,7 +23,7 @@ namespace Business.DependencyResolvers.Autofac
         {
             builder.RegisterType<BlogManager>().As<IBlogService>();
             builder.RegisterType<BlogCategoryManager>().As<IBlogCategoryService>();
-            builder.RegisterType<SlugService>().As<ISlugService>();
+            builder.RegisterType<SlugManager>().As<ISlugService>();
             builder.RegisterAssemblyTypes(typeof(EfBlogCategoryDal).Assembly)
                 .Where(t => t.Name.StartsWith("Ef"))
                 .AsImplementedInterfaces();

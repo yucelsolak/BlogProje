@@ -10,7 +10,6 @@ namespace Entities.DTOs.Category
 {
     public class UpdateCategoryDto:IDto
     {
-        [Required]
         public int CategoryId { get; set; }
 
         public string CategoryName { get; set; }

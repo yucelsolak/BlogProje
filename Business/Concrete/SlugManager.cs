@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Core.Extensions;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
@@ -8,16 +9,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Business.Concrete
 {
-    public class SlugService:ISlugService
+    public class SlugManager:ISlugService
     {
         ISlugDal _slugDal;
 
-        public SlugService(ISlugDal slugDal)
+        public SlugManager(ISlugDal slugDal)
         {
             _slugDal = slugDal;   
+        }
+
+        public Slug AddSlug(string slugText, string entityType, int entityId)
+        {
+            var newslugText = GenerateUniqueSlug(slugText);
+
+            var slug = new Slug
+            {
+                SlugText = newslugText,
+                EntityType = entityType,
+                EntityId = entityId
+            };
+
+            _slugDal.Add(slug);
+            return slug;
         }
 
         public void DeleteByEntity(string entityType, int entityId)
@@ -27,6 +44,22 @@ namespace Business.Concrete
             {
                 _slugDal.Delete(slug);
             }
+        }
+
+        private string GenerateUniqueSlug(string baseText, int? ignoreSlugId = null)
+        {
+            var slugText = baseText.ToSlug();
+            var uniqueSlug = slugText;
+            int counter = 1;
+
+            while (_slugDal.GetAll(s =>
+                   s.SlugText == uniqueSlug && (!ignoreSlugId.HasValue || s.SlugId != ignoreSlugId.Value)).Any())
+            {
+                uniqueSlug = $"{slugText}{counter}";
+                counter++;
+            }
+
+            return uniqueSlug;
         }
 
         public Slug GetByEntity(string entityType, int entityId)
@@ -78,6 +111,19 @@ namespace Business.Concrete
         public void TUpdate(Slug entity)
         {
             throw new NotImplementedException();
+        }
+
+        public Slug UpdateSlug(int slugId, string newText)
+        {
+            var slug = _slugDal.Get(s => s.SlugId == slugId);
+            if (slug == null) throw new Exception("Slug bulunamadı");
+
+            var slugText = GenerateUniqueSlug(newText, slugId); // kendi kaydını hariç tut
+
+            slug.SlugText = slugText;
+            _slugDal.Update(slug);
+
+            return slug;
         }
     }
 }
