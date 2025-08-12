@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Core.Entities;
 using Core.Extensions;
 using Core.Utilities.Results;
 using Entities.Concrete;
@@ -58,18 +59,22 @@ namespace BlogProje.Areas.Admin.Controllers
         [Area("Admin")]
         public IActionResult AddCategory(UpdateCategoryDto model)
         {
-            var addDto = new AddCategoryDto { CategoryName = model.CategoryName };
-
-            var result = _blogCategoryService.AddCategory(addDto);
-            
-            if (!result.Success)
+            try
             {
-                ModelState.AddModelError("CategoryName", result.Message);
-                return View("AddCategory", model);// formu aynı hatayla geri göster
+                var res = _blogCategoryService.AddCategory(model);
+                if (!res.Success) {
+                    ModelState.AddModelError("CategoryName", res.Message);
+                    return View("AddCategory", model);
+                    }
+                    TempData["success"] = res.Message;
+                return RedirectToAction("Index", "Category", new { area = "Admin" });
             }
-
-            TempData["Success"] = result.Message;
-            return RedirectToAction("Index", "Category", new { area = "Admin" });
+            catch (FluentValidation.ValidationException ex)
+            {
+                foreach (var e in ex.Errors)
+                    ModelState.AddModelError(e.PropertyName, e.ErrorMessage);
+                return View("AddCategory", model);
+            }
         }
 
         [HttpGet]
@@ -105,23 +110,23 @@ namespace BlogProje.Areas.Admin.Controllers
                 return View("AddCategory", dto);
             }
 
-            var entity = new BlogCategory
+            try
             {
-                CategoryId = dto.CategoryId,
-                CategoryName = dto.CategoryName,
-                Status = dto.Status
-            };
-
-            var result=_blogCategoryService.CategoryWithSlugUpdate(entity, dto.CategoryName); // Slug içeride otomatik üretiliyor
-
-            if (!result.Success)
-            {
-                ModelState.AddModelError("CategoryName", result.Message);
-                return View("AddCategory", dto);// formu aynı hatayla geri göster
+                var res = _blogCategoryService.CategoryWithSlugUpdate(dto);
+                if (!res.Success)
+                {
+                    ModelState.AddModelError("CategoryName", res.Message);
+                    return View("AddCategory", dto);
+                }
+                TempData["success"] = res.Message;
+                return RedirectToAction("Index", "Category", new { area = "Admin" });
             }
-            TempData["CategoryUpdated"] = result.Message;
-
-            return RedirectToAction("Index", "Category", new { area = "Admin" });
+            catch (FluentValidation.ValidationException ex)
+            {
+                foreach (var e in ex.Errors)
+                    ModelState.AddModelError(e.PropertyName, e.ErrorMessage);
+                return View("AddCategory", dto);
+            }
         }
         
         }

@@ -21,5 +21,12 @@ namespace Business.Constants
         public static string BlogCategoryNotAllowEmpty = "Bir Kategori Seçmelisiniz.";
         public static string BlogAdded = "Blog eklendi.";
         public static string BlogUpdated = "Blog güncellendi.";
+
+        public static string AdminAdded = "Admin eklendi.";
+        public static string AdminUpdated = "Admin güncellendi.";
+        public static string AdminDeleted= "Admin silindi.";
+        public static string AdminNameNotAllowEmpty = "Ad Soyad Boş Geçilemez.";
+        public static string AdminEmailNotAllowEmpty = "Email Boş Geçilemez.";
+        public static string AdminPasswordNotAllowEmpty = "Şifre Boş Geçilemez.";
     }
 }

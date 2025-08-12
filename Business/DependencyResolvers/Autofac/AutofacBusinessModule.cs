@@ -1,9 +1,12 @@
 ﻿using Autofac;
+using Autofac.Extras.DynamicProxy;
 using AutoMapper;
 using Business.Abstract;
 using Business.Concrete;
 using Business.Mapping;
+using Castle.DynamicProxy;
 using Core.Infrastructure.Abstract;
+using Core.Utilities.Interceptors;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
@@ -24,6 +27,7 @@ namespace Business.DependencyResolvers.Autofac
             builder.RegisterType<BlogManager>().As<IBlogService>();
             builder.RegisterType<BlogCategoryManager>().As<IBlogCategoryService>();
             builder.RegisterType<SlugManager>().As<ISlugService>();
+            builder.RegisterType<AdminManager>().As<IAdminService>();
             builder.RegisterAssemblyTypes(typeof(EfBlogCategoryDal).Assembly)
                 .Where(t => t.Name.StartsWith("Ef"))
                 .AsImplementedInterfaces();
@@ -41,7 +45,13 @@ namespace Business.DependencyResolvers.Autofac
                 return config.CreateMapper(context.Resolve);
             }).As<IMapper>().InstancePerLifetimeScope();
 
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
+            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces()
+                .EnableInterfaceInterceptors(new ProxyGenerationOptions()
+                {
+                    Selector = new AspectInterceptorSelector()
+                }).SingleInstance();
 
         }
     }

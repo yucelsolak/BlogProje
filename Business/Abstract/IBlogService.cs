@@ -24,10 +24,9 @@ namespace Business.Abstract
 
         IResult AddBlog(AddUpdateBlogDto dto);
         Task<string> SaveBlogImage(IFormFile blogImage, string title);
-        Task<IResult> BlogWithSlugUpdate(Blog entity, string slugText, IFormFile newImage);
+        Task<IResult> BlogWithSlugUpdate(AddUpdateBlogDto dto);
         Task UpdateBlogImages(int blogId, IFormFile newImage, string slug);
 
         List<BlogListDto> SearchBlogAdmin(string searchTerm);
-        IValidationResult ValidateForAdd(AddUpdateBlogDto dto);
     }
 }

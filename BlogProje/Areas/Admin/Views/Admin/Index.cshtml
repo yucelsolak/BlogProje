@@ -1,0 +1,66 @@
+﻿@using Entities.Concrete
+@model List<Admin>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
+}
+@section Category{}
+
+@if(TempData["success"]!=null)
+{
+    <div id="Success" class="alert alert-success">@TempData["success"]</div>
+}
+@if(TempData["AdminUpdated"]!=null)
+{
+    <div id="AdminUpdated" class="alert alert-success">@TempData["AdminUpdated"]</div>
+}
+@if (TempData["AdminDeleted"] != null)
+{
+    <div id="AdminDeleted" class="alert alert-success">@TempData["AdminDeleted"]</div>
+}
+
+<h1>Admins</h1>
+<div><a class="btn btn-primary" href="/Admin/Admin/AddAdmin">Add Admin</a></div>
+<hr />
+
+<table class="table table-hover table-striped" style="width:500px">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var admin in Model)
+        {
+            <tr>
+                <td>@admin.Name</td>
+                <td>@admin.Email</td>
+                <td>
+                    <form action="/Admin/Admin/Delete/@admin.AdminId" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link p-0 m-0" style="color: inherit;"
+                                onclick="return confirm('Bu Admin silinsin mi?');">
+                            <i class="bi bi-archive-fill h4"></i>
+                        </button>
+                    </form>&nbsp;&nbsp;
+                    <a href="/Admin/Admin/Edit/@admin.AdminId"><i class="bi bi-pencil-square h4"></i></a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts {
+    <script>
+        // Sayfadaki tüm alert div'lerini seç
+        document.querySelectorAll('.alert').forEach(function (alert) {
+            setTimeout(function () {
+                alert.classList.remove('show'); // fade-out başlat
+                setTimeout(function () {
+                    alert.remove(); // fade-out bitince tamamen kaldır
+                }, 500);
+            }, 3000); // 3 saniye sonra başlat
+        });
+    </script>
+}

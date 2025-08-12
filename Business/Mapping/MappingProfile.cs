@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Entities.Concrete;
+using Entities.DTOs.Admin;
 using Entities.DTOs.Blog;
 using Entities.DTOs.Category;
 using System;
@@ -25,6 +26,8 @@ namespace Business.Mapping
             CreateMap<AddCategoryDto, BlogCategory>();
             CreateMap<UpdateCategoryDto, BlogCategory>();
             CreateMap<AddUpdateBlogDto,Blog > ();
+            CreateMap<AddUpdateAdmin, Admin>();
+
         }
     }
 }

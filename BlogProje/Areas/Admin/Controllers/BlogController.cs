@@ -1,5 +1,6 @@
 ﻿using Business.Abstract;
 using Business.Constants;
+using Core.Entities;
 using Core.Extensions;
 using Core.Utilities.Results;
 using Entities.Concrete;
@@ -74,30 +75,28 @@ namespace BlogProje.Areas.Admin.Controllers
         }
         [HttpPost]
         [Area("Admin")]
-        public async Task<IActionResult> AddBlog(AddUpdateBlogDto model)
+        public async Task<IActionResult> AddBlog(AddUpdateBlogDto dto)
         {
-            var fileName = await _blogManager.SaveBlogImage(model.BlogImage, model.Title);
+            var fileName = await _blogManager.SaveBlogImage(dto.BlogImage, dto.Title);
             if (fileName != null)
             {
-                model.Image = fileName;
+                dto.Image = fileName;
             }
-
-            var vres = _blogManager.ValidateForAdd(model);
-            if (!vres.Success)
+            ViewBag.Categories = BuildCategoryList();
+            
+            try
             {
-                foreach (var e in vres.Errors)
-                    ModelState.AddModelError(e.Field, e.Message);
-
-                ViewBag.Categories = BuildCategoryList(); // "0 - Kategori Seçin" dahil
-                return View("AddBlog", model);
-            }
-            else
-            {
-                var result =_blogManager.AddBlog(model);
-                TempData["BlogAdded"] = result.Message;
+                var res = _blogManager.AddBlog(dto);
+                if (!res.Success) { /* ErrorResult -> ModelState */ }
+                TempData["BlogAdded"] = res.Message;
                 return RedirectToAction("Index", "Blog", new { area = "Admin" });
             }
-                
+            catch (FluentValidation.ValidationException ex)
+            {
+                foreach (var e in ex.Errors)
+                    ModelState.AddModelError(e.PropertyName, e.ErrorMessage);
+                return View("AddBlog", dto);
+            }
 
         }
         [HttpGet]
@@ -127,32 +126,22 @@ namespace BlogProje.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.ActionName = "Edit";
-                return View("AddBlog", dto); 
-            }
-
-            var vres = _blogManager.ValidateForAdd(dto);
-            if (!vres.Success)
-            {
-                foreach (var e in vres.Errors)
-                    ModelState.AddModelError(e.Field, e.Message);
-
-                ViewBag.Categories = BuildCategoryList(); // "0 - Kategori Seçin" dahil
                 return View("AddBlog", dto);
             }
-            else
-            { 
-                var entity = new Blog
-                {
-                    BlogId = dto.BlogId,
-                    Title = dto.Title,
-                    Image = dto.Image,
-                    Description = dto.Description,
-                    Status = dto.Status,
-                    CategoryId = dto.CategoryId
-                };
-                var result = await _blogManager.BlogWithSlugUpdate(entity, dto.Title, dto.BlogImage);
-                TempData["BlogUpdated"] = result.Message;
+
+            ViewBag.Categories = BuildCategoryList();
+            try
+            {
+                var res = await _blogManager.BlogWithSlugUpdate(dto);
+                if (!res.Success) { ModelState.AddModelError("", res.Message); return View("AddBlog", dto); }
+                TempData["BlogUpdated"] = res.Message;
                 return RedirectToAction("Index", "Blog", new { area = "Admin" });
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                foreach (var e in ex.Errors)
+                    ModelState.AddModelError(e.PropertyName, e.ErrorMessage);
+                return View("AddBlog", dto);
             }
         }
         private IEnumerable<SelectListItem> BuildCategoryList()

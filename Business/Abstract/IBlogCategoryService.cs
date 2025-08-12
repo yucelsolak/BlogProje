@@ -13,8 +13,7 @@ namespace Business.Abstract
     {
         List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount();
         BlogCategory? GetBySlug(string slug);
-        IResult AddCategory(AddCategoryDto dto);
-        IResult CategoryWithSlugUpdate(BlogCategory entity, string slugText);
-
+        IResult AddCategory(UpdateCategoryDto dto);
+        IResult CategoryWithSlugUpdate(UpdateCategoryDto entity);
     }
 }

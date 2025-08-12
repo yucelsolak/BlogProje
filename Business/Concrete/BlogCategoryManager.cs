@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Business.Abstract;
 using Business.Constants;
+using Business.ValidationRules;
+using Core.Aspects.Autofac.Validation;
 using Core.Entities;
 using Core.Extensions;
 using Core.Utilities.Results;
@@ -31,12 +33,9 @@ namespace Business.Concrete
             _slugService = slugService;
             _blogDal = blogDal;
         }
-
-        public IResult AddCategory(AddCategoryDto dto)
+        [ValidationAspect(typeof(CategoryValidator))]
+        public IResult AddCategory(UpdateCategoryDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto?.CategoryName))
-                return new ErrorResult(Messages.CategoryNotAllowEmpty);
-
             var existingCategory = _blogCategoryDal.Get(c => c.CategoryName.ToLower() == dto.CategoryName.ToLower());
             if (existingCategory != null)
                 return new ErrorResult(Messages.CategorySameName);
@@ -47,12 +46,9 @@ namespace Business.Concrete
             _slugService.AddSlug(dto.CategoryName, "Category", entity.CategoryId);
             return new SuccessResult(Messages.CategoryAdded);
         }
-
-        public IResult CategoryWithSlugUpdate(BlogCategory entity, string slugText)
+        [ValidationAspect(typeof(CategoryValidator))]
+        public IResult CategoryWithSlugUpdate(UpdateCategoryDto entity)
         {
-            if (string.IsNullOrWhiteSpace(entity?.CategoryName))
-                return new ErrorResult(Messages.CategoryNotAllowEmpty);
-
             var normalizedName = entity.CategoryName.Trim();
 
             var exists = _blogCategoryDal
@@ -63,7 +59,14 @@ namespace Business.Concrete
             if (exists)
                 return new ErrorResult(Messages.CategorySameName);
 
-            _blogCategoryDal.Update(entity);
+            var category = new BlogCategory
+            {
+                CategoryId = entity.CategoryId,
+                CategoryName = entity.CategoryName,
+                Status = entity.Status
+            };
+
+            _blogCategoryDal.Update(category);
 
             var slug = _slugService.GetByEntity("Category", entity.CategoryId);
             if (slug != null)
@@ -83,9 +86,10 @@ namespace Business.Concrete
             return _blogCategoryDal.GetCategoriesWithBlogCount();
         }
 
-        public void TAdd(BlogCategory entity)
+        public IResult TAdd(BlogCategory entity)
         {
             _blogCategoryDal.Add(entity);
+            return new SuccessResult();
         }
 
         public IResult TDelete(BlogCategory entity)

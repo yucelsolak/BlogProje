@@ -88,9 +88,10 @@ namespace Business.Concrete
                 .ToDictionaryAsync(s => s.EntityId, s => s.SlugText);
         }
 
-        public void TAdd(Slug entity)
+        public IResult TAdd(Slug entity)
         {
             _slugDal.Add(entity);
+            return new SuccessResult();
         }
 
         public IResult TDelete(Slug entity)

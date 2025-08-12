@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Business.Abstract;
 using Business.Constants;
+using Business.ValidationRules;
+using Core.Aspects.Autofac.Validation;
 using Core.Entities;
 using Core.Extensions;
 using Core.Infrastructure.Abstract;
@@ -52,9 +54,10 @@ namespace Business.Concrete
             return _blogDal.GetLastTenBlog();
         }
 
-        public void TAdd(Blog entity)
+        public IResult TAdd(Blog entity)
         {
             _blogDal.Add(entity);
+            return new SuccessResult();
         }
 
         public IResult TDelete(Blog entity)
@@ -108,16 +111,9 @@ namespace Business.Concrete
             return _blogDal.GetMostRead();
         }
 
-
-
+        [ValidationAspect(typeof(BlogValidator))]
         public IResult AddBlog(AddUpdateBlogDto dto)
-        { 
-            if (string.IsNullOrWhiteSpace(dto?.Title))
-                return new ErrorResult(Messages.BlogNotAllowEmpty); 
-                
-            if(dto.CategoryId==0)
-                return new ErrorResult(Messages.BlogCategoryNotAllowEmpty);
-
+        {
             var entity=_mapper.Map<Blog>(dto);
             var image = entity.Title.ToSlug()+".jpg";
             entity.AddedTime = DateTime.UtcNow;
@@ -155,9 +151,7 @@ namespace Business.Concrete
 
             return null; // Eğer resim yoksa null döneriz
         }
-
-   
-
+        
         public async Task UpdateBlogImages(int blogId, IFormFile newImage, string slug)
         {
             var blog = _blogDal.Get(p => p.BlogId == blogId);
@@ -189,33 +183,6 @@ namespace Business.Concrete
             }
         }
 
-        public async Task<IResult> BlogWithSlugUpdate(Blog entity, string slugText, IFormFile newImage)
-        {
-            var blog = _blogDal.Get(p => p.BlogId == entity.BlogId);
-          
-
-            var slug = _slugService.GetByEntity("Blog", entity.BlogId);
-            if (slug != null)
-            {
-                _slugService.UpdateSlug(slug.SlugId, entity.Title);
-            }
-            // Resim güncelleme işlemi
-            if ( newImage != null && newImage.Length > 0)
-            {
-                // Eski resimleri silme ve yeni resmi kaydetme işlemi
-               await UpdateBlogImages(entity.BlogId, newImage, slugText);
-            entity.Image = slugText.ToSlug()+".jpg";
-            _blogDal.Update(entity);
-            }
-            else
-            {
-                entity.Image = blog.Image;
-                _blogDal.Update(entity);
-            }
-            return new SuccessResult(Messages.BlogUpdated);
-
-        }
-
         public List<BlogListDto> GetAdmin50Blog()
         {
             return _blogDal.GetAdmin50Blog();
@@ -243,19 +210,29 @@ namespace Business.Concrete
             }).ToList();
         }
 
-        public IValidationResult ValidateForAdd(AddUpdateBlogDto dto)
+        [ValidationAspect(typeof(BlogValidator))]
+        public async Task<IResult> BlogWithSlugUpdate(AddUpdateBlogDto dto)
         {
-            var res = new ValidationResult();
+            var blog = _blogDal.Get(p => p.BlogId == dto.BlogId);
+            // alan güncellemeleri
+            blog.Title = dto.Title;
+            blog.Description = dto.Description;
+            blog.Status = dto.Status;
+            blog.CategoryId = dto.CategoryId;
 
-            if (string.IsNullOrWhiteSpace(dto?.Title))
-                res.AddError(nameof(dto.Title), Messages.BlogNotAllowEmpty);
+            // slug
+            var slug = _slugService.GetByEntity("Blog", dto.BlogId);
+            if (slug != null) _slugService.UpdateSlug(slug.SlugId, dto.Title);
 
-            if (string.IsNullOrWhiteSpace(dto?.Description))
-                res.AddError(nameof(dto.Description), Messages.BlogDescNotAllowEmpty);
+            // resim
+            if (dto.BlogImage != null && dto.BlogImage.Length > 0)
+            {
+                await UpdateBlogImages(dto.BlogId, dto.BlogImage, dto.Title);
+                blog.Image = dto.Title.ToSlug() + ".jpg";
+            }
 
-            if (dto.CategoryId == 0)
-                res.AddError(nameof(dto.CategoryId), Messages.BlogCategoryNotAllowEmpty);
-            return res;
+            _blogDal.Update(blog);
+            return new SuccessResult(Messages.BlogUpdated);
         }
     }
 }
