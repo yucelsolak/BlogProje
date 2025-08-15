@@ -3,6 +3,7 @@ using Business.Constants;
 using Core.Entities;
 using Core.Extensions;
 using Core.Utilities.Results;
+using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs.Blog;
 using Microsoft.AspNetCore.Mvc;
@@ -23,10 +24,12 @@ namespace BlogProje.Areas.Admin.Controllers
     {
         IBlogService _blogManager;
         IBlogCategoryService _blogCategoryManager;
-        public BlogController(IBlogService BlogManager, IBlogCategoryService blogCategoryManager)
+        IKeywordService _keywordService;
+        public BlogController(IBlogService BlogManager, IBlogCategoryService blogCategoryManager, IKeywordService keywordService)
         {
             _blogManager = BlogManager;
             _blogCategoryManager = blogCategoryManager;
+            _keywordService = keywordService;
         }
         // Sayfa ilk açılışı
         [HttpGet]
@@ -112,7 +115,8 @@ namespace BlogProje.Areas.Admin.Controllers
                 Image = blog.Image,
                 Description = blog.Description,
                 Status= blog.Status,
-                CategoryId= blog.CategoryId
+                CategoryId= blog.CategoryId,
+                Keywords = _keywordService.GetCsvByBlogId(id)
             };
             ViewBag.Categories = BuildCategoryList();
 
@@ -155,6 +159,13 @@ namespace BlogProje.Areas.Admin.Controllers
 
             list.Insert(0, new SelectListItem { Value = "0", Text = "Kategori Seçin" });
             return list;
+        }
+        [HttpGet]
+        [Area("Admin")]
+        public IActionResult SuggestKeywords(string term, int limit = 10)
+        {
+            var list = _keywordService.Suggest(term ?? "", limit);
+            return Json(list); // ["arabalar","araba lastiği", ...]
         }
     }
 }

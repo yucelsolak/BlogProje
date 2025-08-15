@@ -21,5 +21,7 @@ namespace DataAccess.Abstract
         Blog GetBlogDetail(string Slug);
         void IncrementViewCount(int BlogId);
         List<Blog> GetAllWithCategory(Expression<Func<Blog, bool>> filter = null);
+        List<Blog> GetBlogsByKeywordId(int keywordId);
+        List<BlogListDto> GetBlogListByKeywordId(int keywordId);
     }
 }

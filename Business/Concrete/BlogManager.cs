@@ -76,14 +76,9 @@ namespace Business.Concrete
             // 2) Blog'u sil (FK Cascade -> KeywordBlogs düşer)
             _blogDal.Delete(entity);
 
-            // 3) Artık kullanılmayan keyword'leri bul
-            var orphanIds = candidateKeywordIds
-                .Where(id => !_keywordBlogDal.IsKeywordUsed(id))
-                .ToList();
-
-            // 4) Yetim keyword slug'larını sil + keyword'leri sil
-            _slugService.DeleteByEntities("Keyword", orphanIds);
-            _keywordDal.DeleteRangeByIds(orphanIds);
+            var orphanCandidateIds = candidateKeywordIds;
+            _keywordDal.DeleteIfUnusedByIds(orphanCandidateIds);
+            _slugDal.DeleteKeywordSlugsIfNoKeywordByIds(orphanCandidateIds);
 
             // 5) Görsel temizliği
             if (!string.IsNullOrWhiteSpace(entity.Image))
@@ -242,7 +237,11 @@ namespace Business.Concrete
             // --- 2) Keywords: parse -> upsert -> sync ---
             var names = ParseKeywords(dto.Keywords); // dto.Keywords: "asp.net, c#, ef core" gibi
             var keywordIds = _keywordService.UpsertAndGetIds(names); // Keyword tablosunda varsa al, yoksa ekle
-            SyncBlogKeywords(blog.BlogId, keywordIds);               // Köprü tabloyu senkronize et
+            var sync = SyncBlogKeywords(blog.BlogId, keywordIds);
+            var removedIds = sync.Removed;               // Köprü tabloyu senkronize et
+
+            _keywordDal.DeleteIfUnusedByIds(removedIds);
+            _slugDal.DeleteKeywordSlugsIfNoKeywordByIds(removedIds);
 
             // --- 3) Slug ---
             var slug = _slugService.GetByEntity("Blog", dto.BlogId);
@@ -267,21 +266,19 @@ namespace Business.Concrete
                 .Distinct(StringComparer.InvariantCultureIgnoreCase)
                 .ToList();
         }
-        private void SyncBlogKeywords(int blogId, List<int> desiredKeywordIds)
+        private (List<int> Added, List<int> Removed) SyncBlogKeywords(int blogId, List<int> desiredKeywordIds)
         {
             var currentIds = _keywordBlogDal
-                .GetAll(kb => kb.BlogId == blogId)
-                .Select(kb => kb.KeywordId)
-                .ToList();
+        .GetAll(kb => kb.BlogId == blogId)
+        .Select(kb => kb.KeywordId)
+        .ToList();
 
             var toAdd = desiredKeywordIds.Except(currentIds).ToList();
             var toRemove = currentIds.Except(desiredKeywordIds).ToList();
 
             if (toAdd.Count > 0)
-            {
                 foreach (var kid in toAdd)
                     _keywordBlogDal.Add(new KeywordBlog { BlogId = blogId, KeywordId = kid });
-            }
 
             if (toRemove.Count > 0)
             {
@@ -289,6 +286,18 @@ namespace Business.Concrete
                 foreach (var row in rows)
                     _keywordBlogDal.Delete(row);
             }
+
+            return (toAdd, toRemove);
+        }
+
+        public List<Blog> GetByKeywordId(int keywordId)
+        {
+            return _blogDal.GetBlogsByKeywordId(keywordId);
+        }
+
+        public List<BlogListDto> GetBlogListByKeywordId(int keywordId)
+        {
+            return _blogDal.GetBlogListByKeywordId(keywordId);
         }
     }
 }

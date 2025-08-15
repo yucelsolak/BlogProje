@@ -1,7 +1,9 @@
 ﻿@using Entities.DTOs.Blog
 @model IEnumerable<BlogListDto>
 <h2>@ViewBag.CategoryName</h2>
-
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 @section Category {
 }
 @foreach (var item in Model)

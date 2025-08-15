@@ -24,6 +24,7 @@ namespace BlogProje.Controllers
 
             var model = _blogService.GetByCategory(category.CategoryId); // List<BlogListDto>
             ViewBag.CategoryName = category.CategoryName; // başlıkta kullanırsın
+            ViewData["Title"] = category.CategoryName+" Blogları ";
             return View(model); // Views/Category/Index.cshtml
         }
     }

@@ -2,6 +2,7 @@
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.DTOs.Blog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace Business.Concrete
 
         public Keyword TGetByID(int id)
         {
-            throw new NotImplementedException();
+            return _keywordDal.Get(p=>p.KeywordId == id);
         }
 
         public List<Keyword> TGetList()
@@ -62,5 +63,26 @@ namespace Business.Concrete
             return ids.Distinct().ToList();
         }
         private static string Normalize(string s) => s.Trim();
+
+        public IList<string> GetNamesByBlogId(int blogId)
+        {
+            return _keywordDal.GetNamesByBlogId(blogId);
+        }
+
+        public string GetCsvByBlogId(int blogId)
+        {
+            var names = _keywordDal.GetNamesByBlogId(blogId);
+            return names == null || names.Count == 0 ? string.Empty : string.Join(", ", names);
+        }
+
+        public IList<string> Suggest(string term, int limit = 10)
+        {
+            return _keywordDal.SuggestNames(term, limit);
+        }
+
+        public IList<KeywordLinkDto> GetLinksForBlog(int blogId)
+        {
+            return _keywordDal.GetLinksForBlog(blogId);
+        }
     }
 }

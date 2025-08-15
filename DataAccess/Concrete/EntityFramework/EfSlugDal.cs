@@ -1,6 +1,7 @@
 ﻿using Core.DataAccess.Concrete;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +12,21 @@ namespace DataAccess.Concrete.EntityFramework
 {
     public class EfSlugDal : EfEntityRepositoryBase<Slug, BlogContext>, ISlugDal
     {
-        public void DeleteByEntities(string entityType, IEnumerable<int> entityIds)
+        public int DeleteKeywordSlugsIfNoKeywordByIds(IEnumerable<int> ids)
         {
-            throw new NotImplementedException();
-        }
+            var list = ids?.Distinct().ToList();
+            if (list == null || list.Count == 0) return 0;
 
-        public void DeleteByEntity(string entityType, int entityId)
-        {
-            throw new NotImplementedException();
+            using var ctx = new BlogContext();
+            var idCsv = string.Join(",", list);
+            // Sadece Keywords'te karşılığı kalmamış olanların sluglarını sil
+            return ctx.Database.ExecuteSqlRaw($@"
+        DELETE s
+        FROM Slugs s
+        WHERE s.EntityType = 'Keyword'
+          AND s.EntityId IN ({idCsv})
+          AND NOT EXISTS (SELECT 1 FROM Keywords k WHERE k.KeywordId = s.EntityId);
+    ");
         }
     }
 }

@@ -72,6 +72,7 @@ namespace BlogProje.Areas.Admin.Controllers
                 Status = admin.Status,
                 Email = admin.Email,
             };
+
             ViewBag.ActionName = "Edit"; // View'da BeginForm bunu kullanıyor
             return View("AddAdmin", dto);
         }

@@ -6,6 +6,27 @@
 }
 @section Category {
 }
+<style>
+    #kw-suggest {
+        position: fixed;
+        display: none;
+        background: #fff;
+        border: 1px solid #ddd;
+        box-shadow: 0 8px 24px rgba(0,0,0,.08);
+        max-height: 240px;
+        overflow: auto;
+        z-index: 9999;
+    }
+
+        #kw-suggest .kw-item {
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+            #kw-suggest .kw-item:hover {
+                background: #f5f5f5;
+            }
+</style>
 
 <h1>AddBlog</h1>
 <div class="card" style="width:700px">
@@ -56,7 +77,10 @@
             </div>
             <div class="form-group">
                 @Html.LabelFor(x => x.Keywords, "Anahtar Kelimeler", new { @class = "form-label" })
-                @Html.TextBoxFor(x => x.Keywords, new { @class = "form-control" })
+                @* @Html.TextBoxFor(x => x.Keywords, new { @class = "form-control" }) *@
+                <input id="Keywords" name="Keywords" class="form-control"
+                       placeholder="Örn: araba, yazılım"
+                       value="@Model.Keywords" />
                 @Html.ValidationMessageFor(m => m.Keywords, null, new { @class = "invalid-feedback d-block" })
             </div>
             <div class="form-group">
@@ -65,3 +89,67 @@
         }
     </div>
         </div>
+<script>
+    (function() {
+      const input = document.getElementById('Keywords');
+      const endpoint = '/Admin/Blog/SuggestKeywords';
+
+      // kutuyu body'ye ekle
+      const box = document.createElement('div');
+      box.id = 'kw-suggest';
+      document.body.appendChild(box);
+
+      function getLastToken() {
+        const parts = input.value.split(',');
+        return parts[parts.length - 1].trim();
+      }
+      function replaceLastToken(newText) {
+        const parts = input.value.split(',');
+        parts[parts.length - 1] = ' ' + newText;
+        input.value = parts.map(p => p.trim()).filter(Boolean).join(', ') + ', ';
+      }
+      function hide(){ box.style.display='none'; box.innerHTML=''; }
+      function show(items){
+        // konum: fixed -> viewport'a göre
+        const r = input.getBoundingClientRect();
+        box.style.left = r.left + 'px';
+        box.style.top  = r.bottom + 'px';
+        box.style.width = r.width + 'px';
+
+        box.innerHTML = items.map(x => `<div class="kw-item">${x}</div>`).join('');
+        box.style.display = 'block';
+        box.querySelectorAll('.kw-item').forEach(el=>{
+          el.addEventListener('mousedown', (e)=>{
+            e.preventDefault();
+            replaceLastToken(el.textContent);
+            hide();
+            input.focus();
+          });
+        });
+      }
+
+      let t=null;
+      input.addEventListener('input', function(){
+        const q = getLastToken();
+        if (q.length < 2){ hide(); return; }
+
+        const existing = input.value.toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+
+        clearTimeout(t);
+        t = setTimeout(()=>{
+          fetch(`${endpoint}?term=${encodeURIComponent(q)}&limit=8`)
+            .then(r=>r.json())
+            .then(arr=>{
+              const filtered = arr.filter(x => !existing.includes(x.toLowerCase()));
+              if (filtered.length === 0){ hide(); return; }
+              show(filtered);
+            })
+            .catch(()=>hide());
+        },150);
+      });
+
+      input.addEventListener('blur', ()=> setTimeout(hide,150));
+      window.addEventListener('resize', ()=> hide());   // boyut değişirse gizle
+      window.addEventListener('scroll', ()=> hide(), { passive:true }); // kaydırmada gizle
+    })();
+</script>

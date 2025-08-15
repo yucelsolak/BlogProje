@@ -26,7 +26,8 @@ namespace Business.Abstract
         Task<string> SaveBlogImage(IFormFile blogImage, string title);
         Task<IResult> BlogWithSlugUpdate(AddUpdateBlogDto dto);
         Task UpdateBlogImages(int blogId, IFormFile newImage, string slug);
-
+        List<Blog> GetByKeywordId(int keywordId);
         List<BlogListDto> SearchBlogAdmin(string searchTerm);
+        List<BlogListDto> GetBlogListByKeywordId(int keywordId);
     }
 }

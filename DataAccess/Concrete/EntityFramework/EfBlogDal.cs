@@ -258,5 +258,40 @@ namespace DataAccess.Concrete.EntityFramework
             if (filter != null) q = q.Where(filter);
             return q.OrderByDescending(b => b.BlogId).ToList();
         }
+
+        public List<Blog> GetBlogsByKeywordId(int keywordId)
+        {
+            using var ctx = new BlogContext();
+            return (from b in ctx.Blogs
+                    join kb in ctx.KeywordBlogs on b.BlogId equals kb.BlogId
+                    where kb.KeywordId == keywordId && b.Status
+                    orderby b.AddedTime descending
+                    select b).ToList();
+        }
+
+        public List<BlogListDto> GetBlogListByKeywordId(int keywordId)
+        {
+            using var ctx = new BlogContext();
+            return (from b in ctx.Blogs
+                    join kb in ctx.KeywordBlogs on b.BlogId equals kb.BlogId
+                    join s in ctx.Slugs on new { EId = b.BlogId, EType = "Blog" }
+                                         equals new { EId = s.EntityId, EType = s.EntityType }
+                    join c in ctx.BlogCategories on b.CategoryId equals c.CategoryId
+                    where kb.KeywordId == keywordId && b.Status
+                    orderby b.AddedTime descending
+                    select new BlogListDto
+                    {
+                        BlogId = b.BlogId,
+                        Title = b.Title,
+                        ShortDescription = b.Description.ToShort(200),
+                        Image = b.Image,
+                        ViewCount = b.ViewCount,
+                        CategoryName = c.CategoryName,
+                        CategoryId = c.CategoryId,
+                        Status = b.Status,
+                        Slug = s.SlugText,
+                        AddedTime = b.AddedTime
+                    }).ToList();
+        }
     }
 }

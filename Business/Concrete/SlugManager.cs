@@ -126,5 +126,10 @@ namespace Business.Concrete
             foreach (var s in slugs)
                 _slugDal.Delete(s);
         }
+
+        public Slug GetBySlug(string entityType, string slug)
+        {
+            return _slugDal.Get(x => x.EntityType == entityType && x.SlugText == slug);
+        }
     }
 }

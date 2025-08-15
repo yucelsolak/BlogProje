@@ -1,6 +1,12 @@
 ﻿@using Entities.Concrete
+@using Entities.DTOs.Blog
 @model Blog
-
+@{
+    var tags = ViewBag.Tags as IList<KeywordLinkDto>;
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 @section Category{}
 <nav style="--bs-breadcrumb-divider: url(&#34;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='currentColor'/%3E%3C/svg%3E&#34;);" aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -14,5 +20,17 @@
     <div class="card-body">
         <p class="card-text">@Html.Raw(@Model.Description)</p>
         <small>@Model.AddedTime.ToString("dd.MM.yyyy")</small>
+        <hr />
+        @if (tags != null && tags.Count > 0)
+        {
+            <div class="mt-4">
+                <h6 class="mb-2">Anahtar Kelimeler</h6>
+                @foreach (var t in tags)
+                {
+                    <a class="badge bg-light text-dark border me-1 mb-1" href="/tag/@t.Slug">@t.Name</a>
+                }
+            </div>
+        }
     </div>
+
 </div>

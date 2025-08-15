@@ -20,11 +20,5 @@ namespace DataAccess.Concrete.EntityFramework
                       .Distinct()
                       .ToList();
         }
-
-        public bool IsKeywordUsed(int keywordId)
-        {
-            using var ctx = new BlogContext();
-            return ctx.Set<KeywordBlog>().Any(kb => kb.KeywordId == keywordId);
-        }
     }
 }

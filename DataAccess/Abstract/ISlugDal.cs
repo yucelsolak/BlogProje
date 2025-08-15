@@ -10,7 +10,6 @@ namespace DataAccess.Abstract
 {
     public interface ISlugDal:IEntityRepository<Slug>
     {
-        void DeleteByEntity(string entityType, int entityId);
-        void DeleteByEntities(string entityType, IEnumerable<int> entityIds);
+        int DeleteKeywordSlugsIfNoKeywordByIds(IEnumerable<int> ids);
     }
 }

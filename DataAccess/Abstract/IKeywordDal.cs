@@ -1,5 +1,6 @@
 ﻿using Core.DataAccess;
 using Entities.Concrete;
+using Entities.DTOs.Blog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,9 @@ namespace DataAccess.Abstract
     {
         List<int> GetKeywordIdsByBlogId(int blogId);
         bool IsKeywordUsed(int keywordId);
-        void DeleteRangeByIds(IEnumerable<int> ids);
+        IList<string> GetNamesByBlogId(int blogId);
+        int DeleteIfUnusedByIds(IEnumerable<int> ids);
+        IList<string> SuggestNames(string term, int limit = 10);
+        IList<KeywordLinkDto> GetLinksForBlog(int blogId);
     }
 }

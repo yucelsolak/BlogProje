@@ -10,11 +10,13 @@ namespace BlogProje.Controllers
         IBlogService _blogManager;
         IBlogCategoryService _blogCategoryService;
         ISlugService _slugService;
-        public BlogController(IBlogService blogservice, IBlogCategoryService blogCategoryService, ISlugService slugService)
+        IKeywordService _keywordService;
+        public BlogController(IBlogService blogservice, IBlogCategoryService blogCategoryService, ISlugService slugService, IKeywordService keywordService)
         {
             _blogManager = blogservice;
             _blogCategoryService = blogCategoryService;
             _slugService = slugService;
+            _keywordService = keywordService;
         }
         public IActionResult Index()
         {
@@ -32,12 +34,26 @@ namespace BlogProje.Controllers
             var category=_blogCategoryService.TGetByID(blog.CategoryId);
             ViewBag.CategoryName = category.CategoryName;
             ViewBag.CategorySlug =await _slugService.GetSlugAsync("Category", blog.CategoryId);
+            ViewBag.Tags = _keywordService.GetLinksForBlog(blog.BlogId);
+            ViewData["Title"]=blog.Title;
             return View(blog);
         }
         public IActionResult CokOkunanlar()
         {
             var blog = _blogManager.GetMostRead();
+            ViewData["Title"] = "Çok Okunanlar";
             return View(blog);
         }
+        [HttpGet("/tag/{slug}")]
+        public IActionResult Tag(string slug)
+        {
+            var s = _slugService.GetBySlug("Keyword", slug);
+            if (s == null) return NotFound();
+
+            ViewBag.TagName = _keywordService.TGetByID(s.EntityId)?.KeywordName;
+            var model = _blogManager.GetBlogListByKeywordId(s.EntityId);
+            ViewData["Title"] = ViewBag.TagName;
+            return View("Tag", model);
         }
+    }
 }

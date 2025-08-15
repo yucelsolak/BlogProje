@@ -11,6 +11,5 @@ namespace DataAccess.Abstract
     public interface IKeywordBlogDal:IEntityRepository<KeywordBlog>
     {
         List<int> GetKeywordIdsByBlogId(int blogId);
-        bool IsKeywordUsed(int keywordId); // kb var mı?
     }
 }
