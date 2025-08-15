@@ -7,6 +7,7 @@ using Business.Mapping;
 using Castle.DynamicProxy;
 using Core.Infrastructure.Abstract;
 using Core.Utilities.Interceptors;
+using Core.Utilities.Security.JWT;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
@@ -28,6 +29,9 @@ namespace Business.DependencyResolvers.Autofac
             builder.RegisterType<BlogCategoryManager>().As<IBlogCategoryService>();
             builder.RegisterType<SlugManager>().As<ISlugService>();
             builder.RegisterType<AdminManager>().As<IAdminService>();
+            builder.RegisterType<ClaimManager>().As<IClaimService>();
+            builder.RegisterType<UserClaimManager>().As<IUserClaimService>();
+
             builder.RegisterAssemblyTypes(typeof(EfBlogCategoryDal).Assembly)
                 .Where(t => t.Name.StartsWith("Ef"))
                 .AsImplementedInterfaces();
@@ -53,6 +57,13 @@ namespace Business.DependencyResolvers.Autofac
                     Selector = new AspectInterceptorSelector()
                 }).SingleInstance();
 
+            builder.RegisterType<AuthManager>()
+       .As<IAuthService>()
+       .InstancePerLifetimeScope();
+
+            builder.RegisterType<JwtHelper>()
+               .As<ITokenHelper>()
+               .SingleInstance();
         }
     }
 }

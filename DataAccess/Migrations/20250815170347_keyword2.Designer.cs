@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(BlogContext))]
-    [Migration("20250811171435_admin")]
-    partial class admin
+    [Migration("20250815170347_keyword2")]
+    partial class keyword2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,9 +20,24 @@ namespace DataAccess.Migrations
                 .HasAnnotation("ProductVersion", "5.0.17")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Entities.Concrete.Admin", b =>
+            modelBuilder.Entity("Core.Entities.Concrete.OperationClaim", b =>
                 {
-                    b.Property<int>("AdminId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OperationClaims");
+                });
+
+            modelBuilder.Entity("Core.Entities.Concrete.User", b =>
+                {
+                    b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
@@ -42,9 +57,32 @@ namespace DataAccess.Migrations
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
-                    b.HasKey("AdminId");
+                    b.HasKey("UserId");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Core.Entities.Concrete.UserOperationClaim", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("OperationClaimId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("OperationClaimId");
+
+                    b.HasIndex("UserId", "OperationClaimId")
+                        .IsUnique();
+
+                    b.ToTable("UserOperationClaims");
                 });
 
             modelBuilder.Entity("Entities.Concrete.Blog", b =>
@@ -101,6 +139,44 @@ namespace DataAccess.Migrations
                     b.ToTable("BlogCategories");
                 });
 
+            modelBuilder.Entity("Entities.Concrete.Keyword", b =>
+                {
+                    b.Property<int>("KeywordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("KeywordName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("KeywordId");
+
+                    b.ToTable("Keywords");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.KeywordBlog", b =>
+                {
+                    b.Property<int>("KeywordBlogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("BlogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("KeywordId")
+                        .HasColumnType("int");
+
+                    b.HasKey("KeywordBlogId");
+
+                    b.HasIndex("KeywordId");
+
+                    b.HasIndex("BlogId", "KeywordId")
+                        .IsUnique();
+
+                    b.ToTable("KeywordBlogs");
+                });
+
             modelBuilder.Entity("Entities.Concrete.Slug", b =>
                 {
                     b.Property<int>("SlugId")
@@ -122,6 +198,21 @@ namespace DataAccess.Migrations
                     b.ToTable("Slugs");
                 });
 
+            modelBuilder.Entity("Core.Entities.Concrete.UserOperationClaim", b =>
+                {
+                    b.HasOne("Core.Entities.Concrete.OperationClaim", null)
+                        .WithMany()
+                        .HasForeignKey("OperationClaimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Concrete.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Entities.Concrete.Blog", b =>
                 {
                     b.HasOne("Entities.Concrete.BlogCategory", "Category")
@@ -133,9 +224,38 @@ namespace DataAccess.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("Entities.Concrete.KeywordBlog", b =>
+                {
+                    b.HasOne("Entities.Concrete.Blog", "Blog")
+                        .WithMany("KeywordBlogs")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Concrete.Keyword", "Keyword")
+                        .WithMany("KeywordBlogs")
+                        .HasForeignKey("KeywordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Blog");
+
+                    b.Navigation("Keyword");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.Blog", b =>
+                {
+                    b.Navigation("KeywordBlogs");
+                });
+
             modelBuilder.Entity("Entities.Concrete.BlogCategory", b =>
                 {
                     b.Navigation("Blogs");
+                });
+
+            modelBuilder.Entity("Entities.Concrete.Keyword", b =>
+                {
+                    b.Navigation("KeywordBlogs");
                 });
 #pragma warning restore 612, 618
         }

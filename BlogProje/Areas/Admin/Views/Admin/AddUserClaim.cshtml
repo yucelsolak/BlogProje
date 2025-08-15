@@ -1,0 +1,28 @@
+﻿@model List<Core.Entities.Concrete.OperationClaim>
+@{
+    ViewData["Title"] = "AddUserClaim";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
+    var selected = ViewBag.SelectedIds as HashSet<int> ?? new HashSet<int>();
+}
+@section Category{};
+<h4 class="alert alert-primary">@ViewBag.Name Görevleri</h4>
+<form asp-area="Admin" asp-controller="Admin" asp-action="AddUserClaim" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="UserId" value="@ViewBag.UserId" />
+<div class="list-group mb-3" style="max-width:480px;">
+    @foreach (var c in Model)
+    {
+        <label class="list-group-item">
+            <input type="checkbox"
+                   name="SelectedClaimIds"
+                   value="@c.Id"
+                   @(selected.Contains(c.Id) ? "checked" : "") />
+            @c.Name
+        </label>
+    }
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+    </div>
+</div>
+</form>
+

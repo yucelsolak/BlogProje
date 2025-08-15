@@ -24,5 +24,6 @@ namespace Entities.DTOs.Blog
 
         public string Slug { get; set; }
         public IFormFile BlogImage { get; set; }
+        public string Keywords { get; set; }
     }
 }

@@ -19,7 +19,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace BlogProje.Areas.Admin.Controllers
 {
-    public class BlogController : Controller
+    public class BlogController : AdminBaseController
     {
         IBlogService _blogManager;
         IBlogCategoryService _blogCategoryManager;

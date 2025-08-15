@@ -1,0 +1,71 @@
+﻿@using Core.Entities.Concrete
+@using Core.Utilities.Security
+@using BlogProje.Extensions
+@model List<OperationClaim>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
+}
+@if (TempData["Error"] != null)
+{
+    <div id="ErrorBlog" class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["success"] != null)
+{
+    <div id="Success" class="alert alert-success">@TempData["success"]</div>
+}
+@if (TempData["ClaimUpdated"] != null)
+{
+    <div id="ClaimUpdated" class="alert alert-success">@TempData["ClaimUpdated"]</div>
+}
+@if (TempData["ClaimDeleted"] != null)
+{
+    <div id="ClaimDeleted" class="alert alert-success">@TempData["ClaimDeleted"]</div>
+}
+@section Category{}
+                 {
+<h1>Claims</h1>
+<div><a class="btn btn-primary" href="/Admin/Claim/AddClaim">Add Claim</a></div>
+<hr />
+<table class="table table-hover table-striped" style="width:500px">
+    <thead>
+        <tr>
+            <th>Claim Id</th>
+            <th>Claim Name</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in Model)
+        {
+            <tr>
+                <td>@claim.Id</td>
+                <td>@claim.Name</td>
+                <td>
+                    <form action="/Admin/Claim/Delete/@claim.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link p-0 m-0" style="color: inherit;"
+                                onclick="return confirm('Bu Claim silinsin mi?');">
+                            <i class="bi bi-archive-fill h4"></i>
+                        </button>
+                    </form>&nbsp;&nbsp;
+                    <a href="/Admin/Claim/Edit/@claim.Id"><i class="bi bi-pencil-square h4"></i></a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        // Sayfadaki tüm alert div'lerini seç
+        document.querySelectorAll('.alert').forEach(function (alert) {
+            setTimeout(function () {
+                alert.classList.remove('show'); // fade-out başlat
+                setTimeout(function () {
+                    alert.remove(); // fade-out bitince tamamen kaldır
+                }, 500);
+            }, 3000); // 3 saniye sonra başlat
+        });
+    </script>
+}

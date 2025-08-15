@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules;
 using Core.Aspects.Autofac.Validation;
 using Core.Entities;
 using Core.Extensions;
 using Core.Utilities.Results;
+using Core.Utilities.Security;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
@@ -34,6 +36,7 @@ namespace Business.Concrete
             _blogDal = blogDal;
         }
         [ValidationAspect(typeof(CategoryValidator))]
+        [SecuredOperation(Permissions.AdminOnly)]
         public IResult AddCategory(UpdateCategoryDto dto)
         {
             var existingCategory = _blogCategoryDal.Get(c => c.CategoryName.ToLower() == dto.CategoryName.ToLower());
@@ -47,6 +50,7 @@ namespace Business.Concrete
             return new SuccessResult(Messages.CategoryAdded);
         }
         [ValidationAspect(typeof(CategoryValidator))]
+        [SecuredOperation(Permissions.AdminOnly)]
         public IResult CategoryWithSlugUpdate(UpdateCategoryDto entity)
         {
             var normalizedName = entity.CategoryName.Trim();
@@ -75,23 +79,18 @@ namespace Business.Concrete
             }
             return new SuccessResult(Messages.CategoryUpdated);
         }
-
+        
         public BlogCategory GetBySlug(string slug)
         {
            return _blogCategoryDal.GetBySlug(slug);
         }
-
+        
         public List<CategoryWithBlogCountDto> GetCategoriesWithBlogCount()
         {
             return _blogCategoryDal.GetCategoriesWithBlogCount();
         }
 
-        public IResult TAdd(BlogCategory entity)
-        {
-            _blogCategoryDal.Add(entity);
-            return new SuccessResult();
-        }
-
+        [SecuredOperation(Permissions.AdminOnly)]
         public IResult TDelete(BlogCategory entity)
         {
             var hasBlogs = _blogDal.GetByCategory(entity.CategoryId)?.Any() == true;
@@ -103,7 +102,7 @@ namespace Business.Concrete
             return new SuccessResult(Messages.CategoryDeleted);
   
         }
-
+      
         public BlogCategory TGetByID(int id)
         {
             return _blogCategoryDal.Get(p=>p.CategoryId == id);
@@ -114,9 +113,5 @@ namespace Business.Concrete
             return _blogCategoryDal.GetAll();
         }
 
-        public void TUpdate(BlogCategory entity)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

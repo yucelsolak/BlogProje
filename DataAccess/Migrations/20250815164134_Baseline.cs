@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccess.Migrations
 {
-    public partial class newbase : Migration
+    public partial class Baseline : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

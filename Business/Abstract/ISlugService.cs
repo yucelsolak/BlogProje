@@ -15,6 +15,7 @@ namespace Business.Abstract
         Slug? GetByEntity(string entityType, int entityId);
         Slug AddSlug(string slugText, string entityType, int entityId);
         Slug UpdateSlug(int slugId, string newText);
+        void DeleteByEntities(string entityType, IEnumerable<int> entityIds);
 
     }
 }

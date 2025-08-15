@@ -1,5 +1,6 @@
-﻿<!DOCTYPE html>
-
+﻿@using Core.Utilities.Security
+@using BlogProje.Extensions
+<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
@@ -40,10 +41,27 @@
             <div class="row">
                 <div class="col-md-3">
                     @RenderSection("Category")
+                    <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-link">Çıkış</button>
+                    </form>
                     <div class="list-group"><a class="list-group-item list-group-item-action" href="/Admin">Home</a></div>
-                    <div class="list-group"><a class="list-group-item list-group-item-action" href="/Admin/Admin">Admins</a></div>
+                    @if (User.IsInAnyRoles(Permissions.AdminOnly))
+                    {
+                        <div class="list-group"><a class="list-group-item list-group-item-action" href="/Admin/Admin">Admins</a></div>
+                    }
+                    @if (User.IsInAnyRoles(Permissions.AdminOnly))
+                    {
                     <div class="list-group"><a class="list-group-item list-group-item-action" href="/Admin/Category">Categories</a></div>
+                    }
+                    @if (User.IsInAnyRoles(Permissions.BlogCreate))
+                    {
                     <div class="list-group"><a class="list-group-item list-group-item-action" href="/Admin/Blog">Blogs</a></div>
+                    }
+                    @if (User.IsInAnyRoles(Permissions.AdminOnly))
+                    {
+                    <div class="list-group"><a class="list-group-item list-group-item-action" href="/Admin/Claim">Claims</a></div>
+                    }
                 </div>
                 <div class="col-md-9">@RenderBody()</div>
             </div>

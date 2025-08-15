@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.Entities;
 using Core.Extensions;
 using Core.Infrastructure.Abstract;
 using Core.Utilities.Results;
+using Core.Utilities.Security;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
@@ -35,13 +38,19 @@ namespace Business.Concrete
         ISlugDal _slugDal;
         ISlugService _slugService;
         IImageStorage _imageStorage;
-        public BlogManager(IBlogDal blogDal, IMapper mapper, ISlugDal slugDal, ISlugService slugService, IImageStorage imageStorage)
+        IKeywordService _keywordService;
+        IKeywordBlogDal _keywordBlogDal;
+        IKeywordDal _keywordDal;
+        public BlogManager(IBlogDal blogDal, IMapper mapper, ISlugDal slugDal, ISlugService slugService, IImageStorage imageStorage, IKeywordService keywordService, IKeywordBlogDal keywordBlogDal, IKeywordDal keywordDal)
         {
             _blogDal = blogDal;
             _mapper = mapper;
             _slugDal = slugDal;
             _slugService = slugService;
             _imageStorage = imageStorage;
+            _keywordService = keywordService;
+            _keywordBlogDal = keywordBlogDal;
+            _keywordDal = keywordDal;
         }
 
         public List<BlogListDto> GetByCategory(int CategoryId)
@@ -53,49 +62,52 @@ namespace Business.Concrete
         {
             return _blogDal.GetLastTenBlog();
         }
-
-        public IResult TAdd(Blog entity)
-        {
-            _blogDal.Add(entity);
-            return new SuccessResult();
-        }
-
+ 
+        [SecuredOperation(Permissions.AdminOnly)]
         public IResult TDelete(Blog entity)
         {
-            var fileName = entity.Image; // dosya adını sakla
+
+            // 0) Bu bloga bağlı keyword id'lerini, blogu silmeden ÖNCE al (DAL)
+            var candidateKeywordIds = _keywordBlogDal.GetKeywordIdsByBlogId(entity.BlogId);
+
+            // 1) Blog slug'ını sil
             _slugService.DeleteByEntity("Blog", entity.BlogId);
+
+            // 2) Blog'u sil (FK Cascade -> KeywordBlogs düşer)
             _blogDal.Delete(entity);
 
-            if (!string.IsNullOrWhiteSpace(fileName))
-                _imageStorage.DeleteBlogImages(fileName);
+            // 3) Artık kullanılmayan keyword'leri bul
+            var orphanIds = candidateKeywordIds
+                .Where(id => !_keywordBlogDal.IsKeywordUsed(id))
+                .ToList();
+
+            // 4) Yetim keyword slug'larını sil + keyword'leri sil
+            _slugService.DeleteByEntities("Keyword", orphanIds);
+            _keywordDal.DeleteRangeByIds(orphanIds);
+
+            // 5) Görsel temizliği
+            if (!string.IsNullOrWhiteSpace(entity.Image))
+                _imageStorage.DeleteBlogImages(entity.Image);
+
             return new SuccessResult(Messages.BlogDeleted);
         }
-
         public Blog TGetByID(int id)
         {
             return _blogDal.Get(p => p.BlogId == id);
         }
-
         public List<Blog> GetAllBlog()
         {
             return _blogDal.GetAll();
         }
-
-        public void TUpdate(Blog entity)
-        {
-            _blogDal.Update(entity);
-        }
-
         List<BlogListDto> IBlogService.GetAllBlog()
         {
             return _blogDal.GetAllBlog();
         }
-
         public List<Blog> TGetList()
         {
             return _blogDal.GetAll();
         }
-
+  
         public Blog GetBlogDetail(string slug)
         {
             return _blogDal.GetBlogDetail(slug);
@@ -110,7 +122,7 @@ namespace Business.Concrete
         {
             return _blogDal.GetMostRead();
         }
-
+        [SecuredOperation(Permissions.BlogCreate)]
         [ValidationAspect(typeof(BlogValidator))]
         public IResult AddBlog(AddUpdateBlogDto dto)
         {
@@ -119,6 +131,10 @@ namespace Business.Concrete
             entity.AddedTime = DateTime.UtcNow;
             entity.Image = image;
             _blogDal.Add(entity);
+            var names = ParseKeywords(dto.Keywords);               // private helper (BlogManager)
+            var keywordIds = _keywordService.UpsertAndGetIds(names); // <-- servis çağrısı
+            SyncBlogKeywords(entity.BlogId, keywordIds);             // <-- ilişkiyi kur
+
             _slugService.AddSlug(dto.Title, "Blog", entity.BlogId);
             return new SuccessResult(Messages.BlogAdded);
         }
@@ -209,22 +225,30 @@ namespace Business.Concrete
                 Status = b?.Status ?? false
             }).ToList();
         }
-
+        [SecuredOperation(Permissions.AdminOnly)]
         [ValidationAspect(typeof(BlogValidator))]
+        [TransactionScopeAspect] // bu metod içindeki tüm db işlemlerini ya yap ya da hiç birini yapma
         public async Task<IResult> BlogWithSlugUpdate(AddUpdateBlogDto dto)
         {
             var blog = _blogDal.Get(p => p.BlogId == dto.BlogId);
-            // alan güncellemeleri
+            if (blog == null) return new ErrorResult();
+
+            // --- 1) Blog alanları ---
             blog.Title = dto.Title;
             blog.Description = dto.Description;
             blog.Status = dto.Status;
             blog.CategoryId = dto.CategoryId;
 
-            // slug
+            // --- 2) Keywords: parse -> upsert -> sync ---
+            var names = ParseKeywords(dto.Keywords); // dto.Keywords: "asp.net, c#, ef core" gibi
+            var keywordIds = _keywordService.UpsertAndGetIds(names); // Keyword tablosunda varsa al, yoksa ekle
+            SyncBlogKeywords(blog.BlogId, keywordIds);               // Köprü tabloyu senkronize et
+
+            // --- 3) Slug ---
             var slug = _slugService.GetByEntity("Blog", dto.BlogId);
             if (slug != null) _slugService.UpdateSlug(slug.SlugId, dto.Title);
 
-            // resim
+            // --- 4) Görsel ---
             if (dto.BlogImage != null && dto.BlogImage.Length > 0)
             {
                 await UpdateBlogImages(dto.BlogId, dto.BlogImage, dto.Title);
@@ -233,6 +257,38 @@ namespace Business.Concrete
 
             _blogDal.Update(blog);
             return new SuccessResult(Messages.BlogUpdated);
+        }
+        private static List<string> ParseKeywords(string? csv)
+        {
+            return (csv ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(k => k.Trim())
+                .Where(k => !string.IsNullOrWhiteSpace(k))
+                .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
+        }
+        private void SyncBlogKeywords(int blogId, List<int> desiredKeywordIds)
+        {
+            var currentIds = _keywordBlogDal
+                .GetAll(kb => kb.BlogId == blogId)
+                .Select(kb => kb.KeywordId)
+                .ToList();
+
+            var toAdd = desiredKeywordIds.Except(currentIds).ToList();
+            var toRemove = currentIds.Except(desiredKeywordIds).ToList();
+
+            if (toAdd.Count > 0)
+            {
+                foreach (var kid in toAdd)
+                    _keywordBlogDal.Add(new KeywordBlog { BlogId = blogId, KeywordId = kid });
+            }
+
+            if (toRemove.Count > 0)
+            {
+                var rows = _keywordBlogDal.GetAll(kb => kb.BlogId == blogId && toRemove.Contains(kb.KeywordId));
+                foreach (var row in rows)
+                    _keywordBlogDal.Delete(row);
+            }
         }
     }
 }

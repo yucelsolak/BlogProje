@@ -88,11 +88,6 @@ namespace Business.Concrete
                 .ToDictionaryAsync(s => s.EntityId, s => s.SlugText);
         }
 
-        public IResult TAdd(Slug entity)
-        {
-            _slugDal.Add(entity);
-            return new SuccessResult();
-        }
 
         public IResult TDelete(Slug entity)
         {
@@ -108,12 +103,6 @@ namespace Business.Concrete
         {
             throw new NotImplementedException();
         }
-
-        public void TUpdate(Slug entity)
-        {
-            throw new NotImplementedException();
-        }
-
         public Slug UpdateSlug(int slugId, string newText)
         {
             var slug = _slugDal.Get(s => s.SlugId == slugId);
@@ -125,6 +114,17 @@ namespace Business.Concrete
             _slugDal.Update(slug);
 
             return slug;
+        }
+
+        public void DeleteByEntities(string entityType, IEnumerable<int> entityIds)
+        {
+            var ids = entityIds?.Distinct().ToList();
+            if (ids == null || ids.Count == 0) return;
+
+            // Toplu çek → tek tek sil (IEntityRepository ile uyumlu)
+            var slugs = _slugDal.GetAll(s => s.EntityType == entityType && ids.Contains(s.EntityId));
+            foreach (var s in slugs)
+                _slugDal.Delete(s);
         }
     }
 }

@@ -9,9 +9,7 @@ namespace Business.Abstract
 {
     public interface IGenericService<T>
     {
-        IResult TAdd(T entity);
         IResult TDelete(T entity);
-        void TUpdate(T entity);
         List<T> TGetList();
         T TGetByID(int id);
     }

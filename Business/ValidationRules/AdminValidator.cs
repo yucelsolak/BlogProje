@@ -18,7 +18,7 @@ namespace Business.ValidationRules
                         .EmailAddress().WithMessage("Geçerli bir email giriniz.");
 
             // ADD: şifre zorunlu + karmaşıklık
-            When(p => p.AdminId == 0, () =>
+            When(p => p.UserId == 0, () =>
             {
                 RuleFor(p => p.Password)
                     .NotEmpty().WithMessage("Şifre boş geçilemez.")
@@ -29,7 +29,7 @@ namespace Business.ValidationRules
             });
 
             // UPDATE: şifre opsiyonel; girildiyse karmaşıklık
-            When(p => p.AdminId != 0, () =>
+            When(p => p.UserId != 0, () =>
             {
                 RuleFor(p => p.Password).Cascade(CascadeMode.Stop)
                     .MinimumLength(6).When(x => !string.IsNullOrWhiteSpace(x.Password)).WithMessage("Şifre en az 6 karakter.")

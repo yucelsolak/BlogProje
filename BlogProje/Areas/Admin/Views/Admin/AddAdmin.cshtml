@@ -10,7 +10,7 @@
 
         @using (Html.BeginForm(ViewBag.ActionName as string, "Admin", FormMethod.Post, new { enctype = "multipart/form-data" }))
         {
-            @Html.HiddenFor(x => x.AdminId)
+            @Html.HiddenFor(x => x.UserId)
 
             <div class="form-group">
                 @Html.LabelFor(x => x.Name, "Ad Soyad Girin", new { @class = "form-label" })

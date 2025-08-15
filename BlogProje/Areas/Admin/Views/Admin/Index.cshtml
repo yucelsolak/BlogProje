@@ -1,5 +1,5 @@
-﻿@using Entities.Concrete
-@model List<Admin>
+﻿@using Core.Entities.Concrete
+@model List<User>
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
@@ -38,14 +38,22 @@
                 <td>@admin.Name</td>
                 <td>@admin.Email</td>
                 <td>
-                    <form action="/Admin/Admin/Delete/@admin.AdminId" method="post" class="d-inline">
+                    <form action="/Admin/Admin/Delete/@admin.UserId" method="post" class="d-inline">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-link p-0 m-0" style="color: inherit;"
                                 onclick="return confirm('Bu Admin silinsin mi?');">
                             <i class="bi bi-archive-fill h4"></i>
                         </button>
                     </form>&nbsp;&nbsp;
-                    <a href="/Admin/Admin/Edit/@admin.AdminId"><i class="bi bi-pencil-square h4"></i></a>
+                    <a href="/Admin/Admin/Edit/@admin.UserId"><i class="bi bi-pencil-square h4"></i></a>
+                    &nbsp;&nbsp;
+                    <a asp-area="Admin"
+                       asp-controller="Admin"
+                       asp-action="AddUserClaim"
+                       asp-route-userId="@admin.UserId"
+                       title="Görev Ata">
+                        <i class="bi bi-person-badge h4"></i>
+                    </a>
                 </td>
             </tr>
         }

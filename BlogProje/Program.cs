@@ -26,5 +26,7 @@ namespace BlogProje
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+
     }
 }

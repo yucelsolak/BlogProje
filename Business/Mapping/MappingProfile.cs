@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using Core.Entities.Concrete;
 using Entities.Concrete;
 using Entities.DTOs.Admin;
 using Entities.DTOs.Blog;
 using Entities.DTOs.Category;
+using Entities.DTOs.Claim;
+using Entities.DTOs.UserClaim;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +29,10 @@ namespace Business.Mapping
             CreateMap<AddCategoryDto, BlogCategory>();
             CreateMap<UpdateCategoryDto, BlogCategory>();
             CreateMap<AddUpdateBlogDto,Blog > ();
-            CreateMap<AddUpdateAdmin, Admin>();
-
+            CreateMap<AddUpdateAdmin, User>();
+            CreateMap<AddUpdateClaim, OperationClaim>();
+            CreateMap<AddUpdateUserClaim, UserOperationClaim>();
+            CreateMap<OperationClaim, AddUpdateClaim>();
         }
     }
 }

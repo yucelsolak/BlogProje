@@ -1,0 +1,34 @@
+﻿@model BlogProje.Areas.Admin.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
+}
+
+<main class="form-signin" style="width:500px;margin:auto">
+    <form asp-action="Login" asp-controller="Account" asp-area="Admin" method="post">
+        @Html.AntiForgeryToken()
+        <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+        @Html.LabelFor(x => x.Email, "E-Posta Girin", new { @class = "form-label" })
+        <div class="form-floating">
+            
+            @Html.TextBoxFor(x => x.Email, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.Email, null, new { @class = "invalid-feedback d-block" })
+        </div>
+        @Html.LabelFor(x => x.Password, "Şifre Girin", new { @class = "form-label" })
+        <div class="form-floating">
+
+            
+            @Html.TextBoxFor(x => x.Password, new { @class = "form-control", type = "password" })
+            @Html.ValidationMessageFor(m => m.Password, null, new { @class = "invalid-feedback d-block" })
+        </div>
+
+        <div class="checkbox mb-3">
+            @Html.CheckBoxFor(x => x.RememberMe, new { @class = "form-check-input", id = "rememberMe" })
+            <label class="form-check-label" for="rememberMe">Beni Hatırla</label>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Giriş Yap</button>
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+        <p class="mt-5 mb-3 text-muted">&copy; 2025</p>
+    </form>
+</main>
+

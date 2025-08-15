@@ -24,6 +24,7 @@ namespace Entities.Concrete
         public DateTimeOffset AddedTime { get; set; } = DateTimeOffset.UtcNow;
 
         public virtual BlogCategory Category { get; set; } = null!;
+        public ICollection<KeywordBlog> KeywordBlogs { get; set; } = new List<KeywordBlog>();
 
     }
 }

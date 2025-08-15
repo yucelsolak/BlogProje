@@ -1,4 +1,5 @@
 ﻿using Core.DataAccess.Concrete;
+using Core.Entities.Concrete;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using System;
@@ -10,8 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Concrete.EntityFramework
 {
-    public class EfAdminDal : EfEntityRepositoryBase<Admin,BlogContext>, IAdminDal
+    public class EfAdminDal : EfEntityRepositoryBase<User, BlogContext>, IAdminDal
     {
-
     }
 }

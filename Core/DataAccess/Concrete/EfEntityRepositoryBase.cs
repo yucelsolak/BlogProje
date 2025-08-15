@@ -25,6 +25,12 @@ namespace Core.DataAccess.Concrete
             }
         }
 
+        public bool Any(Expression<Func<TEntity, bool>> predicate)
+        {
+            using var context = new TContext();
+            return context.Set<TEntity>().Any();
+        }
+
         public void Delete(TEntity entity)
         {
             using (TContext context = new TContext())

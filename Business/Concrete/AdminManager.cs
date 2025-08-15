@@ -1,9 +1,11 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules;
 using Core.Aspects.Autofac.Validation;
-using Core.Entities;
+using Core.Entities.Concrete;
 using Core.Utilities.Results;
+using Core.Utilities.Security;
 using Core.Utilities.Security.Hasing;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
@@ -24,12 +26,13 @@ namespace Business.Concrete
         {
             _adminDal = adminDal;
         }
+        [SecuredOperation(Permissions.AdminOnly)]
         [ValidationAspect(typeof(AdminValidator))]
         public IResult AddAdmin(AddUpdateAdmin dto)
         {
             HashingHelper.CreatePasswordHash(dto.Password, out var hash, out var salt);
 
-            var admin = new Admin
+            var admin = new User
             {
                 Name = dto.Name,
                 Email = dto.Email,
@@ -42,36 +45,28 @@ namespace Business.Concrete
             return new SuccessResult(Messages.AdminAdded);
         }
 
-        public IResult TAdd(Admin entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IResult TDelete(Admin entity)
+        [SecuredOperation(Permissions.AdminOnly)]
+        public IResult TDelete(User entity)
         {
             _adminDal.Delete(entity);
             return new SuccessResult(Messages.AdminDeleted);
         }
-
-        public Admin TGetByID(int id)
+        [SecuredOperation(Permissions.AdminOnly)]
+        public User TGetByID(int id)
         {
-           return _adminDal.Get(x=>x.AdminId==id);
+           return _adminDal.Get(x=>x.UserId==id);
         }
-
-        public List<Admin> TGetList()
+        [SecuredOperation(Permissions.AdminOnly)]
+        public List<User> TGetList()
         {
-            return _adminDal.GetAll().OrderByDescending(x => x.AdminId)
+            return _adminDal.GetAll().OrderByDescending(x => x.UserId)
                 .ToList();
         }
-
-        public void TUpdate(Admin entity)
-        {
-            throw new NotImplementedException();
-        }
+        [SecuredOperation(Permissions.AdminOnly)]
         [ValidationAspect(typeof(AdminValidator))]
         public IResult UpdateAdmin(AddUpdateAdmin dto)
         {
-            var admin = _adminDal.Get(a => a.AdminId == dto.AdminId);
+            var admin = _adminDal.Get(a => a.UserId == dto.UserId);
             if (!string.IsNullOrWhiteSpace(dto.Password))
             {
                 HashingHelper.CreatePasswordHash(dto.Password, out var hash, out var salt);

@@ -13,7 +13,7 @@ using System.Linq;
 namespace BlogProje.Areas.Admin.Controllers
 {
     
-    public class CategoryController : Controller
+    public class CategoryController : AdminBaseController
     {
         IBlogCategoryService _blogCategoryService;
         IBlogService _blogService;

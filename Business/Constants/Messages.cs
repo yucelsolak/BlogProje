@@ -28,5 +28,19 @@ namespace Business.Constants
         public static string AdminNameNotAllowEmpty = "Ad Soyad Boş Geçilemez.";
         public static string AdminEmailNotAllowEmpty = "Email Boş Geçilemez.";
         public static string AdminPasswordNotAllowEmpty = "Şifre Boş Geçilemez.";
+
+        public static string AuthorizationDenied = "Bu işlem için yetkiniz yoktur.";
+        public static string UserRegistered = "Kullanıcı kayıt edildi.";
+        public static string UserNotFound = "Kullanıcı bulunamadı.";
+        public static string PasswordError = "Şifre hatalı";
+        public static string SuccessfulLogin = "Giriş başarılı";
+        public static string UserAlreadyExists = "Bu kullanıcı zaten kayıtlı.";
+        public static string AccessTokenCreated = "Token oluşturuldu";
+
+        public static string ClaimAdded = "Görev eklendi.";
+        public static string ClaimUpdated = "Görev Güncellendi.";
+        public static string ClaimDeleted = "Görev Silindi.";
+        public static string ExistingClaim = "Aynı İsimde Bir Görev Var.";
+        public static string ClaimHasUsers = "Bu Göreve Ait Kullanıcılar Mevcut Olduğu İçin Silinemez.";
     }
 }

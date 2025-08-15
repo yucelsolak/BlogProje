@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities.Concrete
+namespace Core.Entities.Concrete
 {
-    public class Admin:IEntity
+    public class User:IEntity
     {
         [Key]
-        public int AdminId { get; set; }
+        public int UserId { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public byte[] PasswordHash { get; set; }
