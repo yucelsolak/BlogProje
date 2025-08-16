@@ -25,6 +25,6 @@ namespace Entities.Concrete
 
         public virtual BlogCategory Category { get; set; } = null!;
         public ICollection<KeywordBlog> KeywordBlogs { get; set; } = new List<KeywordBlog>();
-
+        public ICollection<PhotoGallery> PhotoGalleries { get; set; } = new List<PhotoGallery>();
     }
 }

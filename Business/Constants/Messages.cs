@@ -42,5 +42,10 @@ namespace Business.Constants
         public static string ClaimDeleted = "Görev Silindi.";
         public static string ExistingClaim = "Aynı İsimde Bir Görev Var.";
         public static string ClaimHasUsers = "Bu Göreve Ait Kullanıcılar Mevcut Olduğu İçin Silinemez.";
+
+        public static string ExistingKeyword= "Aynı İsimde Bir Keyword Var.";
+        public static string KeywordUpdated= "Keyword Güncellendi.";
+        public static string KeywordDeleted= "Keyword Silindi.";
+
     }
 }

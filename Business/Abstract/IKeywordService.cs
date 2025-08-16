@@ -1,4 +1,5 @@
-﻿using Entities.Concrete;
+﻿using Core.Utilities.Results;
+using Entities.Concrete;
 using Entities.DTOs.Blog;
 using System;
 using System.Collections.Generic;
@@ -15,5 +16,7 @@ namespace Business.Abstract
         string GetCsvByBlogId(int blogId); // UI için pratik
         IList<string> Suggest(string term, int limit = 10);
         IList<KeywordLinkDto> GetLinksForBlog(int blogId);
+        IResult UpdateKeyword (KeywordLinkDto dto);
+        List<KeywordLinkDto> SearchKeyword(string searchTerm);
     }
 }

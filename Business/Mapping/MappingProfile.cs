@@ -33,6 +33,13 @@ namespace Business.Mapping
             CreateMap<AddUpdateClaim, OperationClaim>();
             CreateMap<AddUpdateUserClaim, UserOperationClaim>();
             CreateMap<OperationClaim, AddUpdateClaim>();
+            CreateMap<Keyword, KeywordLinkDto>();
+    //            .ForMember(d => d.KeywordId, m => m.MapFrom(s => s.KeywordId))
+    //.ForMember(d => d.KeywordName, m => m.MapFrom(s => s.KeywordName))
+    //.ForMember(d => d.Slug, m => m.Ignore());
+            CreateMap<KeywordLinkDto, Keyword>();
+
+
         }
     }
 }

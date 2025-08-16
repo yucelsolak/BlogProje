@@ -1,6 +1,10 @@
-﻿using Business.Abstract;
+﻿using AutoMapper;
+using Business.Abstract;
+using Business.Constants;
+using Core.Entities;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
+using DataAccess.Concrete.EntityFramework;
 using Entities.Concrete;
 using Entities.DTOs.Blog;
 using System;
@@ -16,14 +20,20 @@ namespace Business.Concrete
     {
         IKeywordDal _keywordDal;
         ISlugService _slugService;
-        public KeywordManager(IKeywordDal keywordDal, ISlugService slugService)
+        IMapper _mapper;
+        IKeywordBlogDal _keywordBlogDal;
+        public KeywordManager(IKeywordDal keywordDal, ISlugService slugService,IMapper mapper, IKeywordBlogDal keywordBlogDal)
         {
             _keywordDal = keywordDal;
             _slugService = slugService;
+            _mapper = mapper;
+            _keywordBlogDal = keywordBlogDal;
         }
         public IResult TDelete(Keyword entity)
         {
-            throw new NotImplementedException();
+            _slugService.DeleteByEntity("Keyword", entity.KeywordId);
+            _keywordDal.Delete(entity);            
+            return new SuccessResult(Messages.KeywordDeleted);
         }
 
         public Keyword TGetByID(int id)
@@ -33,7 +43,7 @@ namespace Business.Concrete
 
         public List<Keyword> TGetList()
         {
-            throw new NotImplementedException();
+            return _keywordDal.GetAll();
         }
 
         public List<int> UpsertAndGetIds(IEnumerable<string> names)
@@ -83,6 +93,37 @@ namespace Business.Concrete
         public IList<KeywordLinkDto> GetLinksForBlog(int blogId)
         {
             return _keywordDal.GetLinksForBlog(blogId);
+        }
+
+        public IResult UpdateKeyword(KeywordLinkDto dto)
+        {
+            var normalizedName = dto.KeywordName.Trim();
+
+            var exist=_keywordDal.GetAll(p=>p.KeywordId != dto.KeywordId 
+            && p.KeywordName.ToLower()==normalizedName.ToLower()).Any();
+
+            if (exist)
+                return new ErrorResult(Messages.ExistingKeyword);
+
+            var keyword=_mapper.Map<Keyword>(dto);
+            _keywordDal.Update(keyword);
+            var slug = _slugService.GetByEntity("Keyword", dto.KeywordId);
+            if (slug != null)
+            {
+                _slugService.UpdateSlug(slug.SlugId, dto.KeywordName);
+            }
+            return new SuccessResult(Messages.KeywordUpdated);
+        }
+
+        public List<KeywordLinkDto> SearchKeyword(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return _mapper.Map<List<KeywordLinkDto>>(_keywordDal.GetAll());
+
+
+            var term = searchTerm.Trim();
+            var list = _keywordDal.GetAll(k => (k.KeywordName ?? "").Contains(term));
+            return _mapper.Map<List<KeywordLinkDto>>(list);
         }
     }
 }

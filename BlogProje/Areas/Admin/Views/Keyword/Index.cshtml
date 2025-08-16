@@ -1,44 +1,38 @@
-﻿@model List<Entities.DTOs.Blog.BlogListDto>
+﻿@model List<Entities.DTOs.Blog.KeywordLinkDto>
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
 }
-@section Category {
-}
-@if (TempData["BlogAdded"] != null)
+
+
+@if (TempData["KeywordUpdated"] != null)
 {
-    <div id="BlogAdded" class="alert alert-success">@TempData["BlogAdded"]</div>
+    <div id="KeywordUpdated" class="alert alert-success">@TempData["KeywordUpdated"]</div>
 }
-@if (TempData["BlogUpdated"] != null)
+@if (TempData["KeywordDeleted"] != null)
 {
-    <div id="BlogUpdated" class="alert alert-success">@TempData["BlogUpdated"]</div>
+    <div id="KeywordDeleted" class="alert alert-success">@TempData["KeywordDeleted"]</div>
 }
-@if (TempData["BlogDeleted"] != null)
-{
-    <div id="BlogUpdated" class="alert alert-success">@TempData["BlogDeleted"]</div>
-}
-<div><a class="btn btn-primary" href="/Admin/Blog/AddBlog">Add Blog</a></div>
-<br />
-<h4>Blogs</h4>
+@section Category{}
+<h4>Keywords</h4>
 <hr />
- <div class="m-2">      
-<input class="form-control" type="text" id="searchBox" placeholder="Ara..." />
+<div class="m-2">
+    <input class="form-control" type="text" style="width:500px" id="searchBox" placeholder="Ara..." />
 </div>
 
 
-
-<div id="blogList">
-    @Html.Partial("_BlogList", Model)
+<div id="keywordList">
+    @Html.Partial("_KeywordList", Model)
 </div>
 
 <script>
     $(document).ready(function () {
         $("#searchBox").on("keyup", function () {
             var searchTerm = $(this).val();
-            $.get("@Url.Action("Search", "Blog", new { area = "Admin" })",
+            $.get("@Url.Action("Search", "Keyword", new { area = "Admin" })",
                 { searchTerm: searchTerm },
                 function (data) {
-                    $("#blogList").html(data);
+                    $("#keywordList").html(data);
                 });
         });
     });

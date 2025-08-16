@@ -4,8 +4,9 @@
     Layout = "~/Areas/Admin/Views/Shared/_Layout_Admin.cshtml";
     var selected = ViewBag.SelectedIds as HashSet<int> ?? new HashSet<int>();
 }
-@section Category{};
-<h4 class="alert alert-primary">@ViewBag.Name Görevleri</h4>
+@section Category{}
+<h4 >@ViewBag.Name Görevleri</h4>
+
 <form asp-area="Admin" asp-controller="Admin" asp-action="AddUserClaim" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" name="UserId" value="@ViewBag.UserId" />

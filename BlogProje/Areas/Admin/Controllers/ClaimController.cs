@@ -66,7 +66,8 @@ namespace BlogProje.Areas.Admin.Controllers
         }
         [HttpGet]
         [Area("Admin")]
-        public IActionResult Edit(int id) { 
+        public IActionResult Edit(int id) 
+        { 
             var claim= _claimService.TGetByID(id);
             var dto = _mapper.Map<AddUpdateClaim>(claim);
             ViewBag.ActionName = "Edit"; 

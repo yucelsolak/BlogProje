@@ -31,6 +31,7 @@ namespace Business.DependencyResolvers.Autofac
             builder.RegisterType<AdminManager>().As<IAdminService>();
             builder.RegisterType<ClaimManager>().As<IClaimService>();
             builder.RegisterType<UserClaimManager>().As<IUserClaimService>();
+            builder.RegisterType<KeywordManager>().As<IKeywordService>();
 
             builder.RegisterAssemblyTypes(typeof(EfBlogCategoryDal).Assembly)
                 .Where(t => t.Name.StartsWith("Ef"))

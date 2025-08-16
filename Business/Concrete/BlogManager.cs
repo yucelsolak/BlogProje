@@ -268,11 +268,11 @@ namespace Business.Concrete
         }
         private (List<int> Added, List<int> Removed) SyncBlogKeywords(int blogId, List<int> desiredKeywordIds)
         {
-            var currentIds = _keywordBlogDal
-        .GetAll(kb => kb.BlogId == blogId)
-        .Select(kb => kb.KeywordId)
-        .ToList();
-
+            //    var currentIds = _keywordBlogDal
+            //.GetAll(kb => kb.BlogId == blogId)
+            //.Select(kb => kb.KeywordId)
+            //.ToList();
+            var currentIds = _keywordBlogDal.GetKeywordIdsByBlogId(blogId);
             var toAdd = desiredKeywordIds.Except(currentIds).ToList();
             var toRemove = currentIds.Except(desiredKeywordIds).ToList();
 

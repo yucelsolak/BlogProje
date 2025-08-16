@@ -62,7 +62,7 @@ public class BlogContext : DbContext
             b.HasOne(kb => kb.Keyword)
  .WithMany(k => k.KeywordBlogs)
  .HasForeignKey(kb => kb.KeywordId)
- .OnDelete(DeleteBehavior.Restrict);
+ .OnDelete(DeleteBehavior.Cascade);
 
             b.HasOne(kb => kb.Blog)
              .WithMany(b => b.KeywordBlogs)
@@ -71,6 +71,32 @@ public class BlogContext : DbContext
 
             b.HasIndex(kb => new { kb.BlogId, kb.KeywordId })
              .IsUnique(); // <-- aynı çiftten bir tane olsun
+        });
+
+        modelBuilder.Entity<PhotoGallery>(b =>
+        {
+            b.HasKey(x => x.PhotoGalleryId);
+
+            // Blog silinirse galeri bağımsız kalsın istiyorsan:
+            b.HasOne(x => x.Blog)
+             .WithMany(b => b.PhotoGalleries)
+             .HasForeignKey(x => x.BlogId)
+             .OnDelete(DeleteBehavior.SetNull); // BlogId nullable olmalı
+
+            // Aynı Blog içinde başlıklar benzersiz olsun (opsiyonel):
+            b.HasIndex(x => new { x.BlogId, x.Title }).IsUnique();
+        });
+
+        modelBuilder.Entity<GalleryImage>(b =>
+        {
+            b.HasKey(x => x.GalleryImageId);
+
+            b.HasOne(x => x.PhotoGallery)
+             .WithMany(g => g.Images)
+             .HasForeignKey(x => x.PhotoGalleryId)
+             .OnDelete(DeleteBehavior.Cascade); // Galeri silinince resimler de silinsin
+
+            b.HasIndex(x => new { x.PhotoGalleryId, x.SortOrder });
         });
 
         base.OnModelCreating(modelBuilder);

@@ -48,7 +48,7 @@ namespace DataAccess.Concrete.EntityFramework
                     join s in ctx.Set<Slug>() on k.KeywordId equals s.EntityId
                     where kb.BlogId == blogId && s.EntityType == "Keyword"
                     orderby k.KeywordName
-                    select new KeywordLinkDto { Name = k.KeywordName, Slug = s.SlugText }).ToList();
+                    select new KeywordLinkDto { KeywordName = k.KeywordName, Slug = s.SlugText }).ToList();
         }
 
         public IList<string> GetNamesByBlogId(int blogId)

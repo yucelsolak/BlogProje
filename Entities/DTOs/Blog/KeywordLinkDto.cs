@@ -8,8 +8,8 @@ namespace Entities.DTOs.Blog
 {
     public class KeywordLinkDto
     { 
-        public int Id { get; set; }
-        public string Name { get; set; } 
+        public int KeywordId { get; set; }
+        public string KeywordName { get; set; } 
         public string Slug { get; set; }
     }
 }
